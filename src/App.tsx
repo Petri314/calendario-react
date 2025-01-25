@@ -36,6 +36,37 @@ const RotativeShiftCalendar = () => {
     "2025-12-25": "Navidad",
   };
 
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartX(e.touches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (touchStartX === null) {
+      return;
+    }
+
+    const touchEndX = e.touches[0].clientX;
+    const touchDiff = touchStartX - touchEndX;
+
+    if (touchDiff > 50) {
+      // Swipe left to go to the next month
+      setCurrentMonth(
+        new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1)
+      );
+      setTouchStartX(null);
+    } else if (touchDiff < -50) {
+      // Swipe right to go to the previous month
+      if (currentMonth.getFullYear() > 2025 || currentMonth.getMonth() > 0) {
+        setCurrentMonth(
+          new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1)
+        );
+      }
+      setTouchStartX(null);
+    }
+  };
+
   const generateCalendar = (date: Date) => {
     const year = date.getFullYear();
     const month = date.getMonth();
@@ -106,7 +137,11 @@ const RotativeShiftCalendar = () => {
         .slice(1); // Capitalize first letter
 
     return (
-      <div>
+      <div
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        className="container mx-auto p-4"
+      >
         <div className="bg-white p-4 rounded-lg shadow-md flex">
           <div className="flex-grow">
             <div className="flex justify-between items-center mb-4">
