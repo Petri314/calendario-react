@@ -13,9 +13,9 @@ const RotativeShiftCalendar = () => {
   ];
 
   const shiftTurnMapping: { [key: string]: number[] } = {
-    SSTK1: [2, 0, 1], // Mañana, Noche, Tarde
-    SSTK2: [1, 2, 0], // Tarde, Mañana, Noche
-    SSTK3: [0, 1, 2], // Noche, Tarde, Mañana
+    SSTK1: [1, 2, 0], // Mañana, Noche, Tarde
+    SSTK2: [0, 1, 2], // Tarde, Mañana, Noche
+    SSTK3: [2, 0, 1], // Noche, Tarde, Mañana
   };
 
   const holidaysInChile: { [key: string]: string } = {
@@ -75,10 +75,11 @@ const RotativeShiftCalendar = () => {
     const days = [];
 
     // Calculate the initial shift for the current month
-    const startDate = new Date(2025, 0, 1); // Start from January 1, 2025
+    const startDate = new Date(2024, 11, 2); // Start from December 2, 2024 to align weeks
     const daysSinceStartDate = Math.floor(
       (firstDay.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
     );
+    
     const initialShift = (Math.floor(daysSinceStartDate / 7) + 2) % 3; // Start with 'Tarde' shift
 
     // Adjust to start week on Monday
