@@ -1,0 +1,160 @@
+/* Styles for the calendar */
+.bg-orange-200 {
+  background-color: #ff8903;
+}
+.bg-blue-200 {
+  background-color: hsl(195, 96%, 71%);
+}
+.bg-blue-900 {
+  background-color: #1e3a8a;
+  color: white;
+}
+.text-white {
+  color: white;
+}
+.border {
+  border: 1px solid #e5e7eb;
+}
+.border-2 {
+  border-width: 3px;
+}
+.border-red-500 {
+  border-color: #000000;
+}
+.bg-white {
+  background-color: rgb(255, 255, 255);
+}
+.bg-gray-100 {
+  background-color: #f0f3fb;
+}
+.bg-gray-200 {
+  background-color: #e6ebf6;
+}
+.p-2 {
+  padding: 0.5rem;
+}
+.p-4 {
+  padding: 1rem;
+}
+.rounded-lg {
+  border-radius: 0.5rem;
+}
+.rounded {
+  border-radius: 0.25rem;
+}
+.shadow-md {
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+.container {
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+.mx-auto {
+  margin-left: auto;
+  margin-right: auto;
+}
+.grid {
+  display: grid;
+}
+.grid-cols-7 {
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+.gap-1 {
+  gap: 0.25rem;
+}
+.text-center {
+  text-align: center;
+}
+.font-bold {
+  font-weight: 700;
+}
+.flex {
+  display: flex;
+}
+.flex-grow {
+  flex-grow: 1;
+}
+.justify-between {
+  justify-content: space-between;
+}
+.justify-center {
+  justify-content: center;
+}
+.items-center {
+  align-items: center;
+}
+.h-8 {
+  height: 2rem;
+}
+.w-4 {
+  width: 1rem;
+}
+.w-12 {
+  width: 3rem;
+}
+.w-16 {
+  width: 4rem;
+}
+.border-r {
+  border-right: 1px solid #e5e7eb;
+}
+.pr-2 {
+  padding-right: 0.5rem;
+}
+.px-2 {
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+.py-1 {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+.relative {
+  position: relative;
+}
+.mt-4 {
+  margin-top: 1rem;
+}
+.mr-2 {
+  margin-right: 0.5rem;
+}
+.mx-4 {
+  margin-left: 1rem;
+  margin-right: 1rem;
+}
+.rounded-full {
+  border-radius: 9999px;
+}
+.text-sm {
+  font-size: 0.875rem;
+}
+.font-semibold {
+  font-weight: 600;
+}
+.transition-colors {
+  transition: background-color 0.3s ease;
+}
+.hover\:bg-gray-300:hover {
+  background-color: #bdc1c9;
+}
+
+/* Custom styles for the calendar */
+.today {
+  font-size: 1.2rem;
+  animation: pulse 1s infinite;
+}
+
+.today-expanded {
+  font-size: 1.5rem;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
