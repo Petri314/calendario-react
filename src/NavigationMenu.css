@@ -1,0 +1,79 @@
+/* Estilos básicos para el navbar */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: #333;
+    color: white;
+  }
+  
+  .navbar-brand {
+    font-size: 1.5rem;
+  }
+  
+  .menu-icon {
+    display: block;
+    font-size: 1.8rem;
+    cursor: pointer;
+  }
+  
+  .nav-links {
+    display: flex;
+    list-style: none;
+    flex-grow: 1;
+    justify-content: space-around;
+    margin: 0;
+    transition: all 0.3s ease-in-out;
+  }
+  
+  .nav-item {
+    margin: 0 20px;
+  }
+  
+  .nav-item a {
+    color: white;
+    text-decoration: none;
+    font-size: 1.2rem;
+  }
+  
+  /* Estilos para pantallas móviles */
+  @media (max-width: 768px) {
+    .nav-links {
+      display: none;
+      flex-direction: column;
+      width: 100%;
+      text-align: center;
+    }
+  
+    .nav-links.open {
+      display: flex;
+      animation: slideIn 0.3s ease-in-out;
+    }
+  
+    .menu-icon {
+      font-size: 1.8rem;
+      cursor: pointer;
+    }
+  
+    .navbar-brand.hidden {
+      display: none;
+    }
+  
+    .nav-item {
+      margin: 10px 0;
+    }
+  }
+  
+  /* Animación al desplegar el menú */
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  

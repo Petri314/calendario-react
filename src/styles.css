@@ -360,3 +360,31 @@ nav a:hover {
     transform: scale(1.1);
   }
 }
+
+/* Estilos para el contenedor del menú */
+.navbar {
+  background-color: #333; /* Fondo oscuro */
+  overflow: hidden; /* Para evitar desbordamiento */
+}
+
+/* Estilos para los enlaces del menú */
+.navbar a {
+  float: left; /* Para alinearlos a la izquierda */
+  display: block; /* Para que ocupen toda el área de su contenedor */
+  color: white; /* Color del texto */
+  text-align: center; /* Centrar el texto */
+  padding: 14px 20px; /* Espaciado interno */
+  text-decoration: none; /* Sin subrayado */
+}
+
+/* Cambiar el color al pasar el ratón por encima */
+.navbar a:hover {
+  background-color: #ddd; /* Fondo claro */
+  color: black; /* Color del texto */
+}
+
+/* Estilos para elementos activos del menú */
+.navbar a.active {
+  background-color: #4CAF50; /* Fondo verde */
+  color: white; /* Color del texto */
+}
