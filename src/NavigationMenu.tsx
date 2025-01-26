@@ -10,7 +10,6 @@ const NavigationMenu = () => {
 
   return (
     <nav className="navbar">
-      <div className={`navbar-brand ${isOpen ? 'hidden' : ''}`}></div>
       <ul className={`nav-links ${isOpen ? 'open' : ''}`}>
         <li className="nav-item">
           <a href="#">Inicio</a>

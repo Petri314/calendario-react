@@ -1,15 +1,11 @@
 /* Estilos básicos para el navbar */
 .navbar {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     align-items: center;
     padding: 10px 20px;
     background-color: #333;
     color: white;
-  }
-  
-  .navbar-brand {
-    font-size: 1.5rem;
   }
   
   .menu-icon {
@@ -21,8 +17,6 @@
   .nav-links {
     display: flex;
     list-style: none;
-    flex-grow: 1;
-    justify-content: space-around;
     margin: 0;
     transition: all 0.3s ease-in-out;
   }
@@ -48,6 +42,7 @@
   
     .nav-links.open {
       display: flex;
+      width: 100%; /* Abarca todo el ancho de la pantalla */
       animation: slideIn 0.3s ease-in-out;
     }
   
@@ -56,12 +51,16 @@
       cursor: pointer;
     }
   
-    .navbar-brand.hidden {
-      display: none;
-    }
-  
     .nav-item {
       margin: 10px 0;
+      width: 100%; /* Abarca todo el ancho del menú */
+    }
+  
+    .nav-item a {
+      width: 100%; /* Abarca todo el ancho del menú */
+      padding: 10px 0;
+      display: block;
+      text-align: center;
     }
   }
   
