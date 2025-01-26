@@ -42,7 +42,7 @@
   
     .nav-links.open {
       display: flex;
-      width: 100%; /* Abarca todo el ancho de la pantalla */
+      width: 90%; /* Abarca todo el ancho de la pantalla */
       animation: slideIn 0.3s ease-in-out;
     }
   
@@ -52,8 +52,8 @@
     }
   
     .nav-item {
-      margin: 10px 0;
-      width: 100%; /* Abarca todo el ancho del menú */
+      margin: 5px 0;
+      width: 80%; /* Abarca todo el ancho del menú */
     }
   
     .nav-item a {
