@@ -25,6 +25,7 @@ const TaskTable: React.FC = () => {
     // Obtener tareas de la API
     axios.get('http://localhost:5000/tasks')
       .then(response => {
+        console.log('Datos recibidos:', response.data); // Verificar los datos recibidos
         setTasks(response.data);
       })
       .catch(error => {
@@ -54,8 +55,8 @@ const TaskTable: React.FC = () => {
           {tasks.map((task) => (
             <tr key={task._id}>
               <td data-title="Apilador">{task.worker}</td>
-              <td data-title="Día y hora">{`De ${task.startTime} a ${task.endTime} el ${task.day}`}</td>
-              <td data-title="Pasillo">{task.aisle}</td>
+              <td data-title="Día y hora">{`De ${task.startTime || 'N/A'} a ${task.endTime || 'N/A'} el ${task.day}`}</td>
+              <td data-title="Pasillo">{task.aisle || 'N/A'}</td>
             </tr>
           ))}
         </tbody>

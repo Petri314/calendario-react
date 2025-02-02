@@ -2,9 +2,12 @@ import React, { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import './styles.css';
 const RotativeShiftCalendar = () => {
-  const [currentMonth, setCurrentMonth] = useState(new Date(2025, 0)); // January 2025
+  const [currentMonth, setCurrentMonth] = useState(new Date()); // January 2025
   const [currentShift, setCurrentShift] = useState("SSTK2"); // Default shift SSTK2
   const today = new Date();
+  useEffect(() => {
+    setCurrentMonth(new Date()); // Actualiza al mes actual al cargar el componente
+  }, []);
 
   const shifts = [
     { color: "bg-orange-200", type: "Tarde" },
