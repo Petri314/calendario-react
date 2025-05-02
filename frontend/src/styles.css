@@ -2,6 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
+
 /* Tus estilos personalizados (si los tienes) */
 .alert-success {
   color: green;
