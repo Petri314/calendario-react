@@ -5,6 +5,8 @@ const cors = require('cors');
 const app = express();
 const PORT = 5000;
 
+const Task = require('./models/Task');
+
 // Middleware
 app.use(cors());
 app.use(express.json());
@@ -22,35 +24,30 @@ app.get('/', (req, res) => {
   res.send('API funcionando 🚀');
 });
 
+// Obtener lista de tareas desde MongoDB
+app.get('/tasks', async (req, res) => {
+  try {
+    const tasks = await Task.find({}); // Consulta todos los documentos de la colección Task
+    console.log('Backend: Tareas obtenidas de MongoDB:', tasks);
+    res.json(tasks); // Devuelve las tareas obtenidas de la base de datos
+  } catch (error) {
+    console.error('🔴 Error al obtener las tareas de MongoDB:', error);
+    res.status(500).send('Error al obtener tareas desde la base de datos');
+  }
+});
+
+app.post('/tasks', async (req, res) => {
+  const newTask = req.body;
+
+  try {
+    const task = await Task.create(newTask);
+    res.status(201).json(task);
+  } catch (error) {
+    console.error('🔴 Error al guardar la tarea en MongoDB:', error);
+    res.status(500).json({ message: 'Error al guardar la tarea' });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Servidor backend en http://localhost:${PORT}`);
 });
-
-// Obtener lista de tareas
-app.get('/tasks', async (req, res) => {
-    try {
-      // Aquí podrías consultar una base de datos, pero por ahora enviamos datos de ejemplo
-      const tasks = [
-        { id: 1, name: 'Tarea 1', description: 'Descripción de la tarea 1' },
-        { id: 2, name: 'Tarea 2', description: 'Descripción de la tarea 2' },
-        { id: 3, name: 'Tarea 3', description: 'Descripción de la tarea 3' },
-      ];
-      res.json(tasks); // Devuelve las tareas al frontend
-    } catch (error) {
-      console.error(error);
-      res.status(500).send('Error al obtener tareas');
-    }
-  });
-  
-  app.post('/tasks', (req, res) => {
-    const newTask = req.body;
-  
-    // Guardar la tarea en la base de datos
-    Task.create(newTask, (err, task) => {
-      if (err) {
-        return res.status(500).json({ message: 'Error al guardar la tarea' });
-      }
-      res.status(201).json(task);
-    });
-  });
-  
