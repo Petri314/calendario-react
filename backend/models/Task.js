@@ -1,14 +1,13 @@
 const mongoose = require('mongoose');
 
-const taskSchema = new mongoose.Schema({
-  worker: { type: String, required: true },
-  day: { type: String, required: true },
-  task: { type: String, required: true },
-  startTime: { type: String, required: true },
-  endTime: { type: String, required: true },
-  aisle: { type: String, required: true },
+const TaskSchema = new mongoose.Schema({
+  worker: String,
+  startTime: String,
+  endTime: String,
+  aisle: String,
+  category: String,
+  camera: String,
+  // Puedes eliminar los campos que ya no estás utilizando si lo deseas
 });
 
-const Task = mongoose.model('Task', taskSchema);
-
-module.exports = Task;
+module.exports = mongoose.model('Task', TaskSchema);
