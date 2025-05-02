@@ -1,9 +1,11 @@
+
+import TaskTable from "./TaskTable";
 import "./styles.css";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import NavigationMenu from "./NavigationMenu";
 import RotativeShiftCalendar from "./RotativeShiftCalendar";
-import TaskTable from "./TaskTable";
+
 import { Task } from "./interfaces/Task";
 
 const App: React.FC = () => {
