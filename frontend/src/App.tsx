@@ -1,4 +1,3 @@
-
 import TaskTable from "./TaskTable";
 import "./styles.css";
 import React, { useEffect, useState } from "react";
@@ -19,11 +18,11 @@ const App: React.FC = () => {
     category: "unica", // Manteniendo una categoría única
     camera: "",
   });
-  const [mostrarFormulario, setMostrarFormulario] = useState<boolean>(true);
+  const [mostrarFormulario, setMostrarFormulario] = useState<boolean>(true); // Cambiado a false para ocultar el formulario por defecto
 
   useEffect(() => {
     axios
-      .get(`http://localhost:5000/tasks`) // Cambiado a /tasks
+      .get(`http://localhost:5000/api/tasks`) // **URL CORREGIDA A /api/tasks**
       .then((response) => setTasks(response.data))
       .catch((error) => console.error(`Error al obtener tareas`, error));
   }, []); // Se ejecuta solo una vez al montar el componente
@@ -36,7 +35,7 @@ const App: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     axios
-      .post(`http://localhost:5000/tasks`, newTask) // Cambiado a /tasks
+      .post(`http://localhost:5000/api/tasks`, newTask) // **URL CORREGIDA A /api/tasks**
       .then((response) => {
         setTasks([...tasks, response.data]);
         setNewTask({ worker: "", startTime: "", endTime: "", aisle: "", category: "unica", camera: "" });
