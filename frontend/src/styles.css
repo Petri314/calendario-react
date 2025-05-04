@@ -193,7 +193,9 @@ body {
   margin: 0;
   padding: 0;
   background-color: #f0f3fb;
-  
+  max-width: 1200px; /* Puedes ajustar este valor al ancho máximo que desees */
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .container {
