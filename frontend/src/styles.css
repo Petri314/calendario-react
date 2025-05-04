@@ -198,6 +198,14 @@ body {
   margin-right: auto;
 }
 
+/* Estilos para la sección del repo (la tabla) */
+#repo {
+  margin-top: 2rem; /* Equivalente a mt-8 */
+  width: 90%; /* Ocupar el 90% del ancho por defecto (para móviles) */
+  margin-left: auto;
+  margin-right: auto; /* Centrar la tabla por defecto */
+}
+
 .container {
   max-width: 1000px;
   margin: 0 auto;
