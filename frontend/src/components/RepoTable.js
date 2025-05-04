@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import './RepoTable.css';
+import reloadIcon from '../assets/reload_icon.png';
 
 function RepoTable() {
   const [tasks, setTasks] = useState([]);
@@ -177,11 +179,23 @@ function RepoTable() {
     }
   };
 
+  const handleRecargarPagina = () => {
+    window.location.reload();
+  };
+
   return (
     <div className="mt-6">
       <h2 className="text-xl font-semibold mb-2">Repo {turnoActual || 'Sin Turno'}, {diaSemana}</h2>
-      <p className="text-sm text-gray-500 mb-2">
+      <p className="text-sm text-gray-500 mb-2 flex items-center space-x-2">
         Hora actual: <span className="digital-time">{currentTime.toLocaleTimeString('es-CL', { hour12: false })}</span>
+        <span className="reload-icon-container">
+          <img
+            src={reloadIcon}
+            alt="Recargar página"
+            className="reload-icon cursor-pointer"
+            onClick={handleRecargarPagina}
+          />
+        </span>
       </p>
       {turnoActual ? (
         <div className="overflow-x-auto w-full">
