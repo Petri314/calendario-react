@@ -6,6 +6,7 @@ function RepoTable() {
   const [error, setError] = useState(null);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [turnoActual, setTurnoActual] = useState(null);
+  const [diaSemana, setDiaSemana] = useState('');
 
   const turnos = {
     Mañana: { entrada: 6 * 60 + 40, inicioBreak: 10 * 60 + 30, finBreak: 11 * 60, salida: 14 * 60 + 10 },
@@ -28,6 +29,10 @@ function RepoTable() {
   useEffect(() => {
     const turno = getTurnoActual();
     setTurnoActual(turno);
+
+    const now = new Date();
+    const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    setDiaSemana(dias[now.getDay()]);
 
     fetch('/data.json')
       .then(response => {
@@ -52,6 +57,8 @@ function RepoTable() {
 
     const intervalId = setInterval(() => {
       setCurrentTime(new Date());
+      const now = new Date();
+      setDiaSemana(dias[now.getDay()]);
     }, 1000);
 
     return () => clearInterval(intervalId);
@@ -172,10 +179,10 @@ function RepoTable() {
 
   return (
     <div className="mt-6">
-      <h2 className="text-xl font-semibold mb-2">Repo {turnoActual || 'Sin Turno'}</h2>
+      <h2 className="text-xl font-semibold mb-2">Repo {turnoActual || 'Sin Turno'}, {diaSemana}</h2>
       <p className="text-sm text-gray-500 mb-2">
-  Hora actual: <span className="digital-time">{currentTime.toLocaleTimeString('es-CL', { hour12: false })}</span>
-</p>
+        Hora actual: <span className="digital-time">{currentTime.toLocaleTimeString('es-CL', { hour12: false })}</span>
+      </p>
       {turnoActual ? (
         <div className="overflow-x-auto w-full">
           <table className="min-w-full w-full bg-white shadow-md rounded-lg border-collapse border-spacing-0">
