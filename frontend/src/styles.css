@@ -193,7 +193,7 @@ body {
   margin: 0;
   padding: 0;
   background-color: #f0f3fb;
-  color: #333;
+  
 }
 
 .container {
@@ -415,4 +415,37 @@ nav a:hover {
 .navbar a.active {
   background-color: #4CAF50; /* Fondo verde */
   color: white; /* Color del texto */
+}
+
+
+.camara-celda.bg-blue-100 {
+  background-color: #e0f2fe !important; /* Un azul más claro */
+}
+
+.camara-celda.bg-green-100 {
+  background-color: #f0fff4 !important; /* Un verde muy claro */
+}
+
+.camara-celda.bg-yellow-100 {
+  background-color: #fffde7 !important; /* Un amarillo muy claro */
+}
+
+.camara-celda.bg-orange-100 {
+  background-color: #fff3e0 !important; /* Un naranja muy claro */
+}
+
+.camara-celda.bg-purple-100 {
+  background-color: #f3e5f5 !important; /* Un morado muy claro */
+}
+
+.camara-celda.bg-red-100 {
+  background-color: #ffebee !important; /* Un rojo muy claro */
+}
+
+.camara-celda.bg-teal-100 {
+  background-color: #e0f7fa !important; /* Un verde azulado muy claro */
+}
+
+.camara-celda.bg-pink-100 {
+  background-color: #fce4ec !important; /* Un rosa muy claro */
 }
