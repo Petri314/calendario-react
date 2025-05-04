@@ -174,7 +174,7 @@ function RepoTable() {
     <div className="mt-6">
       <h2 className="text-xl font-semibold mb-2">Repo {turnoActual || 'Sin Turno'}</h2>
       <p className="text-sm text-gray-500 mb-2">
-  Hora actual: <span className="digital-time">{currentTime.toLocaleTimeString()}</span>
+  Hora actual: <span className="digital-time">{currentTime.toLocaleTimeString('es-CL', { hour12: false })}</span>
 </p>
       {turnoActual ? (
         <div className="overflow-x-auto w-full">
