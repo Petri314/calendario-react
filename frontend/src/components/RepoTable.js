@@ -5,8 +5,30 @@ function RepoTable() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [turnoActual, setTurnoActual] = useState(null);
+
+  const turnos = {
+    Mañana: { entrada: 6 * 60 + 40, inicioBreak: 10 * 60 + 30, finBreak: 11 * 60, salida: 14 * 60 + 10 },
+    Tarde: { entrada: 14 * 60 + 20, inicioBreak: 18 * 60 + 40, finBreak: 19 * 60 + 10, salida: 21 * 60 + 55 },
+    Noche: { entrada: 22 * 60, inicioBreak: 2 * 60 + 45, finBreak: 3 * 60 + 15, salida: 6 * 60 + 5 + 24 * 60 },
+  };
+
+  const getTurnoActual = () => {
+    const nowMinutes = currentTime.getHours() * 60 + currentTime.getMinutes();
+    if (nowMinutes >= turnos.Mañana.entrada && nowMinutes < turnos.Mañana.salida) {
+      return "Mañana";
+    } else if (nowMinutes >= turnos.Tarde.entrada && nowMinutes < turnos.Tarde.salida) {
+      return "Tarde";
+    } else if (nowMinutes >= turnos.Noche.entrada || nowMinutes < turnos.Noche.salida) {
+      return "Noche";
+    }
+    return null;
+  };
 
   useEffect(() => {
+    const turno = getTurnoActual();
+    setTurnoActual(turno);
+
     fetch('/data.json')
       .then(response => {
         if (!response.ok) {
@@ -15,7 +37,12 @@ function RepoTable() {
         return response.json();
       })
       .then(data => {
-        setTasks(data);
+        if (turno) {
+          const tareasDelTurno = data.filter(tarea => tarea.Turno?.toLowerCase() === turno?.toLowerCase());
+          setTasks(tareasDelTurno);
+        } else {
+          setTasks([]);
+        }
         setLoading(false);
       })
       .catch(error => {
@@ -38,41 +65,95 @@ function RepoTable() {
     return <div className="mt-6 text-red-500">Error al cargar los datos: {error.message}</div>;
   }
 
-  const getApiladorForTask = (task) => {
-    if (task.Camara === "Congelado") {
-      const now = currentTime;
-      const currentHour = now.getHours();
-      const currentMinute = now.getMinutes();
-      const currentTimeInMinutes = currentHour * 60 + currentMinute;
+  const getTimeInMinutes = (timeString) => {
+    if (!timeString) return null;
+    const [hourStr, minuteStr] = timeString.split(':');
+    return parseInt(hourStr) * 60 + parseInt(minuteStr);
+  };
 
-      const [startHourStr, startMinuteStr] = task["Hora Inicio"].split(':');
-      const [endHourStr, endMinuteStr] = task["Hora fin"].split(':');
-      const [breakStartHourStr, breakStartMinuteStr] = task["Hora break inicio"] ? task["Hora break inicio"].split(':') : [null, null];
-      const [breakEndHourStr, breakEndMinuteStr] = task["Hora break fin"] ? task["Hora break fin"].split(':') : [null, null];
+  const getCurrentTimeInMinutes = () => {
+    return currentTime.getHours() * 60 + currentTime.getMinutes();
+  };
 
-      const startTimeInMinutes = parseInt(startHourStr) * 60 + parseInt(startMinuteStr);
-      const endTimeInMinutes = parseInt(endHourStr) * 60 + parseInt(endMinuteStr);
-      const breakStartTimeInMinutes = breakStartHourStr && breakStartMinuteStr ? parseInt(breakStartHourStr) * 60 + parseInt(breakStartMinuteStr) : null;
-      const breakEndTimeInMinutes = breakEndHourStr && breakEndMinuteStr ? parseInt(breakEndHourStr) * 60 + parseInt(breakEndMinuteStr) : null;
+  const isTimeInBreak = (task, turno) => {
+    const nowMinutes = getCurrentTimeInMinutes();
+    const breakStartMinutes = turnos[turno]?.inicioBreak;
+    const breakEndMinutes = turnos[turno]?.finBreak;
 
-      const isNightShift = endTimeInMinutes < startTimeInMinutes;
-
-      const isBeforeBreak = isNightShift
-        ? (currentTimeInMinutes >= startTimeInMinutes || currentTimeInMinutes < breakStartTimeInMinutes)
-          && currentTimeInMinutes < (breakStartTimeInMinutes + (endTimeInMinutes < startTimeInMinutes ? 24 * 60 : 0))
-        : currentTimeInMinutes >= startTimeInMinutes && currentTimeInMinutes < breakStartTimeInMinutes;
-
-      if (isBeforeBreak) {
-        return task.Apilador.split(' / ')[0]?.trim();
+    if (breakStartMinutes !== undefined && breakEndMinutes !== undefined) {
+      if (turnos[turno]?.salida < turnos[turno]?.entrada) {
+        return nowMinutes >= breakStartMinutes || nowMinutes < breakEndMinutes;
       } else {
-        return task.Apilador;
+        return nowMinutes >= breakStartMinutes && nowMinutes < breakEndMinutes;
       }
-    } else {
-      if (task.Apilador.includes('/')) {
-        return task.Apilador.split(' / ')[0]?.trim() || task.Apilador;
-      }
-      return task.Apilador;
     }
+    return false;
+  };
+
+  const getApiladorForTask = (task) => {
+    if (task.Apilador?.includes('/')) {
+      const [firstApilador, secondApilador] = task.Apilador.split(' / ').map(name => name.trim());
+      if (turnoActual) {
+        const breakEndMinutes = turnos[turnoActual]?.finBreak;
+        const nowMinutes = getCurrentTimeInMinutes();
+        if (breakEndMinutes !== undefined && nowMinutes >= breakEndMinutes) {
+          return secondApilador;
+        } else {
+          return firstApilador;
+        }
+      } else {
+        return firstApilador;
+      }
+    }
+    return task.Apilador;
+  };
+
+  const getHoraDisplay = (task) => {
+    if (!turnoActual) {
+      return "Fuera de horario de turno";
+    }
+
+    const nowMinutes = getCurrentTimeInMinutes();
+    const startMinutes = getTimeInMinutes(task["Hora Inicio"]);
+    const endMinutes = getTimeInMinutes(task["Hora fin"]);
+    const breakStartMinutes = getTimeInMinutes(task["Hora break inicio"]);
+    const breakEndMinutes = getTimeInMinutes(task["Hora break fin"]);
+
+    if (turnoActual === "Noche") {
+      if (breakStartMinutes !== undefined && breakEndMinutes !== undefined) {
+        if (nowMinutes >= startMinutes || nowMinutes < breakStartMinutes) {
+          return `${task["Hora Inicio"]} - ${task["Hora break inicio"]}`;
+        } else if (nowMinutes >= breakEndMinutes && nowMinutes < endMinutes) {
+          return `${task["Hora break fin"]} - ${task["Hora fin"]}`;
+        } else if (nowMinutes >= breakStartMinutes && nowMinutes < breakEndMinutes) {
+          return "Break";
+        } else {
+          return `${task["Hora Inicio"]} - ${task["Hora fin"]}`; // Fallback
+        }
+      } else {
+        return `${task["Hora Inicio"]} - ${task["Hora fin"]}`; // Si no hay break definido para la noche
+      }
+    } else { // Turnos Mañana y Tarde
+      if (breakStartMinutes !== undefined && breakEndMinutes !== undefined) {
+        if (nowMinutes >= startMinutes && nowMinutes < breakStartMinutes) {
+          return `${task["Hora Inicio"]} - ${task["Hora break inicio"]}`;
+        } else if (nowMinutes >= breakEndMinutes && nowMinutes < endMinutes) {
+          return `${task["Hora break fin"]} - ${task["Hora fin"]}`;
+        } else if (nowMinutes >= breakStartMinutes && nowMinutes < breakEndMinutes) {
+          return "Break";
+        } else {
+          return `${task["Hora Inicio"]} - ${task["Hora fin"]}`; // Fallback
+        }
+      } else {
+        return `${task["Hora Inicio"]} - ${task["Hora fin"]}`;
+      }
+    }
+  };
+
+  const formatMinutesToTime = (minutes) => {
+    const hour = Math.floor(minutes / 60);
+    const minute = minutes % 60;
+    return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
   };
 
   const getCameraRowClass = (camara) => {
@@ -91,60 +172,36 @@ function RepoTable() {
 
   return (
     <div className="mt-6">
-      <h2 className="text-xl font-semibold mb-2">Repo Noche</h2>
-      <p className="text-sm text-gray-500 mb-2">Hora actual: {currentTime.toLocaleTimeString()}</p>
-      <div className="overflow-x-auto w-full">
-        <table className="min-w-full w-full bg-white shadow-md rounded-lg border-collapse border-spacing-0">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700 uppercase tracking-wider">Cámara</th>
-              <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700 uppercase tracking-wider">Apilador</th>
-              <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700 uppercase tracking-wider">Hora</th>
-              <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700 uppercase tracking-wider">Pasillo</th>
-            </tr>
-          </thead>
-          <tbody>
-            {tasks.map((task, index) => {
-              const now = currentTime;
-              const currentHour = now.getHours();
-              const currentMinute = now.getMinutes();
-              const currentTimeInMinutes = currentHour * 60 + currentMinute;
-
-              const [breakStartHourStr, breakStartMinuteStr] = task["Hora break inicio"] ? task["Hora break inicio"].split(':') : [null, null];
-              const [breakEndHourStr, breakEndMinuteStr] = task["Hora break fin"] ? task["Hora break fin"].split(':') : [null, null];
-
-              const breakStartTimeInMinutes = breakStartHourStr && breakStartMinuteStr ? parseInt(breakStartHourStr) * 60 + parseInt(breakStartMinuteStr) : null;
-              const breakEndTimeInMinutes = breakEndHourStr && breakEndMinuteStr ? parseInt(breakEndHourStr) * 60 + parseInt(breakEndMinuteStr) : null;
-
-              const [startHourStr, startMinuteStr] = task["Hora Inicio"].split(':');
-              const [endHourStr, endMinuteStr] = task["Hora fin"].split(':');
-              const startTimeInMinutes = parseInt(startHourStr) * 60 + parseInt(startMinuteStr);
-              const endTimeInMinutes = parseInt(endHourStr) * 60 + parseInt(endMinuteStr);
-              const isNightShift = endTimeInMinutes < startTimeInMinutes;
-
-              let isBreakTime = false;
-              if (breakStartTimeInMinutes !== null && breakEndTimeInMinutes !== null) {
-                const adjustedBreakEndTimeInMinutes = isNightShift && breakEndTimeInMinutes < breakStartTimeInMinutes
-                  ? breakEndTimeInMinutes + 24 * 60
-                  : breakEndTimeInMinutes;
-
-                isBreakTime = currentTimeInMinutes >= breakStartTimeInMinutes && currentTimeInMinutes < adjustedBreakEndTimeInMinutes;
-              }
-
-              return (
+      <h2 className="text-xl font-semibold mb-2">Repo {turnoActual || 'Sin Turno'}</h2>
+      <p className="text-sm text-gray-500 mb-2">
+  Hora actual: <span className="digital-time">{currentTime.toLocaleTimeString()}</span>
+</p>
+      {turnoActual ? (
+        <div className="overflow-x-auto w-full">
+          <table className="min-w-full w-full bg-white shadow-md rounded-lg border-collapse border-spacing-0">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700 uppercase tracking-wider">Cámara</th>
+                <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700 uppercase tracking-wider">Apilador</th>
+                <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700 uppercase tracking-wider">Hora</th>
+                <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700 uppercase tracking-wider">Pasillo</th>
+              </tr>
+            </thead>
+            <tbody>
+              {tasks.map((task, index) => (
                 <tr key={index} className={`${index % 2 === 0 ? 'bg-gray-50' : ''} ${getCameraRowClass(task.Camara)}`}>
                   <td className="px-4 py-3 whitespace-nowrap text-sm text-center text-gray-900 p-2">{task.Camara}</td>
                   <td className="px-4 py-3 whitespace-nowrap text-sm text-center text-gray-900 p-2">{getApiladorForTask(task)}</td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-center text-gray-900 p-2">
-                    {isBreakTime ? "Break" : "22:00 - 02:45"}
-                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap text-sm text-center text-gray-900 p-2">{getHoraDisplay(task)}</td>
                   <td className="px-4 py-3 whitespace-nowrap text-sm text-center text-gray-900 p-2">{task.Pasillo}</td>
                 </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <p className="mt-4 text-gray-600 italic">No hay tareas programadas para la hora actual.</p>
+      )}
     </div>
   );
 }

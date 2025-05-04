@@ -459,3 +459,13 @@ nav a:hover {
 .camara-celda.bg-pink-100 {
   background-color: #fce4ec !important; /* Un rosa muy claro */
 }
+
+.digital-time {
+  font-family: monospace; /* Fuente monoespaciada para que los caracteres tengan el mismo ancho */
+  font-size: 1.2em; /* Ajusta el tamaño según necesites */
+  color: #a7ff83; /* Color verde similar al de la imagen */
+  background-color: #000; /* Fondo negro */
+  padding: 2px 5px; /* Un poco de espacio alrededor del texto */
+  border-radius: 3px; /* Bordes ligeramente redondeados */
+  letter-spacing: 2px; /* Espacio entre caracteres para simular segmentos */
+}
