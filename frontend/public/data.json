@@ -46,6 +46,51 @@
     {
      "Día": "5\/5\/2025",
      "Turno": "Tarde",
+     "Camara": "Fiambreria",
+     "Apilador": "Julio Dilas \/ Rene Catalan",
+     "Hora Inicio": "14:15",
+     "Hora break inicio": "18:40",
+     "Hora break fin": "19:10",
+     "Hora fin": "21:55",
+     "Pasillo": "AA - AG"
+    },
+    {
+     "Día": "5\/5\/2025",
+     "Turno": "Tarde",
+     "Camara": "Fiambreria",
+     "Apilador": "Karol Ortiz \/ Renzo Dilas",
+     "Hora Inicio": "14:15",
+     "Hora break inicio": "18:40",
+     "Hora break fin": "19:10",
+     "Hora fin": "21:55",
+     "Pasillo": "AH - AJ"
+    },
+    {
+     "Día": "5\/5\/2025",
+     "Turno": "Tarde",
+     "Camara": "Fiambreria",
+     "Apilador": "Jose Albarran \/ Aybal Lopez",
+     "Hora Inicio": "14:15",
+     "Hora break inicio": "18:40",
+     "Hora break fin": "19:10",
+     "Hora fin": "21:55",
+     "Pasillo": "BA - BG"
+    },
+    {
+     "Día": "5\/5\/2025",
+     "Turno": "Tarde",
+     "Camara": "Fiambreria",
+     "Apilador": "Jhon Ramirez \/ Flavio Huerta",
+     "Hora Inicio": "14:15",
+     "Hora break inicio": "18:40",
+     "Hora break fin": "19:10",
+     "Hora fin": "21:55",
+     "Pasillo": "BH - BJ"
+    }
+    
+    {
+     "Día": "5\/5\/2025",
+     "Turno": "Tarde",
      "Camara": "Seco",
      "Apilador": "Victor Morillo \/ Hugo Millanao",
      "Hora Inicio": "14:15",
@@ -142,48 +187,5 @@
      "Hora fin": "21:55",
      "Pasillo": "H"
     },
-    {
-     "Día": "5\/5\/2025",
-     "Turno": "Tarde",
-     "Camara": "Fiambreria",
-     "Apilador": "Julio Dilas \/ Rene Catalan",
-     "Hora Inicio": "14:15",
-     "Hora break inicio": "18:40",
-     "Hora break fin": "19:10",
-     "Hora fin": "21:55",
-     "Pasillo": "AA - AG"
-    },
-    {
-     "Día": "5\/5\/2025",
-     "Turno": "Tarde",
-     "Camara": "Fiambreria",
-     "Apilador": "Karol Ortiz \/ Renzo Dilas",
-     "Hora Inicio": "14:15",
-     "Hora break inicio": "18:40",
-     "Hora break fin": "19:10",
-     "Hora fin": "21:55",
-     "Pasillo": "AH - AJ"
-    },
-    {
-     "Día": "5\/5\/2025",
-     "Turno": "Tarde",
-     "Camara": "Fiambreria",
-     "Apilador": "Jose Albarran \/ Aybal Lopez",
-     "Hora Inicio": "14:15",
-     "Hora break inicio": "18:40",
-     "Hora break fin": "19:10",
-     "Hora fin": "21:55",
-     "Pasillo": "BA - BG"
-    },
-    {
-     "Día": "5\/5\/2025",
-     "Turno": "Tarde",
-     "Camara": "Fiambreria",
-     "Apilador": "Jhon Ramirez \/ Flavio Huerta",
-     "Hora Inicio": "14:15",
-     "Hora break inicio": "18:40",
-     "Hora break fin": "19:10",
-     "Hora fin": "21:55",
-     "Pasillo": "BH - BJ"
-    }
+    
    ]
