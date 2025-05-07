@@ -87,7 +87,6 @@
      "Hora fin": "21:55",
      "Pasillo": "BH - BJ"
     },
-    
     {
      "Día": "5\/5\/2025",
      "Turno": "Tarde",
@@ -98,6 +97,28 @@
      "Hora break fin": "19:10",
      "Hora fin": "21:55",
      "Pasillo": "Seco"
+    },
+    {
+     "Día": "5\/5\/2025",
+     "Turno": "Tarde",
+     "Camara": "Carnes",
+     "Apilador": "Ricardo Seguel",
+     "Hora Inicio": "14:15",
+     "Hora break inicio": "18:40",
+     "Hora break fin": "19:10",
+     "Hora fin": "21:55",
+     "Pasillo": "N"
+    },
+    {
+     "Día": "5\/5\/2025",
+     "Turno": "Tarde",
+     "Camara": "Carnes",
+     "Apilador": "Gerardo Tejo",
+     "Hora Inicio": "14:15",
+     "Hora break inicio": "18:40",
+     "Hora break fin": "19:10",
+     "Hora fin": "21:55",
+     "Pasillo": "H"
     },
     {
      "Día": "5\/5\/2025",
@@ -164,28 +185,6 @@
      "Hora break fin": "19:10",
      "Hora fin": "21:55",
      "Pasillo": "W1 - W4 - Z1 - Z5"
-    },
-    {
-     "Día": "5\/5\/2025",
-     "Turno": "Tarde",
-     "Camara": "Carnes",
-     "Apilador": "Ricardo Seguel",
-     "Hora Inicio": "14:15",
-     "Hora break inicio": "18:40",
-     "Hora break fin": "19:10",
-     "Hora fin": "21:55",
-     "Pasillo": "N"
-    },
-    {
-     "Día": "5\/5\/2025",
-     "Turno": "Tarde",
-     "Camara": "Carnes",
-     "Apilador": "Gerardo Tejo",
-     "Hora Inicio": "14:15",
-     "Hora break inicio": "18:40",
-     "Hora break fin": "19:10",
-     "Hora fin": "21:55",
-     "Pasillo": "H"
     }
     
    ]
