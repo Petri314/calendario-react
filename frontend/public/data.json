@@ -14,6 +14,17 @@
      "Día": "5\/5\/2025",
      "Turno": "Tarde",
      "Camara": "Congelado",
+     "Apilador": "John Ramírez \/ Jorge Palacios",
+     "Hora Inicio": "14:15",
+     "Hora break inicio": "18:40",
+     "Hora break fin": "19:10",
+     "Hora fin": "21:55",
+     "Pasillo": "U"
+    },
+    {
+     "Día": "5\/5\/2025",
+     "Turno": "Tarde",
+     "Camara": "Congelado",
      "Apilador": "Karol Ortiz \/ Jhon Lopez",
      "Hora Inicio": "14:15",
      "Hora break inicio": "18:40",
@@ -31,17 +42,6 @@
      "Hora break fin": "19:10",
      "Hora fin": "21:55",
      "Pasillo": "R"
-    },
-    {
-     "Día": "5\/5\/2025",
-     "Turno": "Tarde",
-     "Camara": "Congelado",
-     "Apilador": "John Ramírez \/ Jorge Palacios",
-     "Hora Inicio": "14:15",
-     "Hora break inicio": "18:40",
-     "Hora break fin": "19:10",
-     "Hora fin": "21:55",
-     "Pasillo": "U"
     },
     {
      "Día": "5\/5\/2025",
