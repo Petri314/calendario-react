@@ -47,17 +47,6 @@
      "Día": "5\/5\/2025",
      "Turno": "Tarde",
      "Camara": "Fiambreria",
-     "Apilador": "Gerardo Tejo \/ Victor Gonzalez",
-     "Hora Inicio": "14:15",
-     "Hora break inicio": "18:40",
-     "Hora break fin": "19:10",
-     "Hora fin": "21:55",
-     "Pasillo": "AA - AG"
-    },
-    {
-     "Día": "5\/5\/2025",
-     "Turno": "Tarde",
-     "Camara": "Fiambreria",
      "Apilador": "Rene Catalan \/ Israel Molina",
      "Hora Inicio": "14:15",
      "Hora break inicio": "18:40",
@@ -69,24 +58,35 @@
      "Día": "5\/5\/2025",
      "Turno": "Tarde",
      "Camara": "Fiambreria",
-     "Apilador": "Renzo Dilas \/ Jhorkey Gonzalez",
-     "Hora Inicio": "14:15",
-     "Hora break inicio": "18:40",
-     "Hora break fin": "19:10",
-     "Hora fin": "21:55",
-     "Pasillo": "BA - BG"
-    },
-    {
-     "Día": "5\/5\/2025",
-     "Turno": "Tarde",
-     "Camara": "Fiambreria",
-     "Apilador": "Aybak Lopez \/ Sebastian Carrasco",
+     "Apilador": "Aybal Lopez \/ Sebastian Carrasco",
      "Hora Inicio": "14:15",
      "Hora break inicio": "18:40",
      "Hora break fin": "19:10",
      "Hora fin": "21:55",
      "Pasillo": "BH - BJ"
     },
+    {
+     "Día": "5\/5\/2025",
+     "Turno": "Tarde",
+     "Camara": "Fiambreria",
+     "Apilador": "Gerardo Tejo \/ Victor Gonzalez",
+     "Hora Inicio": "14:15",
+     "Hora break inicio": "18:40",
+     "Hora break fin": "19:10",
+     "Hora fin": "21:55",
+     "Pasillo": "AA - AG"
+    },
+    {
+     "Día": "5\/5\/2025",
+     "Turno": "Tarde",
+     "Camara": "Fiambreria",
+     "Apilador": "Renzo Dilas \/ Jhorkey Gonzalez",
+     "Hora Inicio": "14:15",
+     "Hora break inicio": "18:40",
+     "Hora break fin": "19:10",
+     "Hora fin": "21:55",
+     "Pasillo": "BA - BG"
+    }
     {
      "Día": "5\/5\/2025",
      "Turno": "Tarde",
@@ -135,23 +135,23 @@
      "Día": "5\/5\/2025",
      "Turno": "Tarde",
      "Camara": "Panaderia",
-     "Apilador": "Hugo Millanao",
-     "Hora Inicio": "14:15",
-     "Hora break inicio": "18:40",
-     "Hora break fin": "19:10",
-     "Hora fin": "21:55",
-     "Pasillo": "V3 - V4 - Y3 - Y4"
-    },
-    {
-     "Día": "5\/5\/2025",
-     "Turno": "Tarde",
-     "Camara": "Panaderia",
      "Apilador": "Flavio Huerta",
      "Hora Inicio": "14:15",
      "Hora break inicio": "18:40",
      "Hora break fin": "19:10",
      "Hora fin": "21:55",
      "Pasillo": "V1 - V2 - Y1 - Y2"
+    },
+    {
+     "Día": "5\/5\/2025",
+     "Turno": "Tarde",
+     "Camara": "Panaderia",
+     "Apilador": "Hugo Millanao",
+     "Hora Inicio": "14:15",
+     "Hora break inicio": "18:40",
+     "Hora break fin": "19:10",
+     "Hora fin": "21:55",
+     "Pasillo": "V3 - V4 - Y3 - Y4"
     },
     {
      "Día": "5\/5\/2025",
