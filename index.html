@@ -1,0 +1,2180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendario de Turnos y Tareas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Tailwind gray-100 */
+            padding-top: 4rem; /* Ajuste para la barra de navegación fija */
+        }
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100; /* Encima de otros modales */
+        }
+        .calendar-day {
+            min-height: 100px; 
+            transition: all 0.2s ease-in-out;
+            -webkit-tap-highlight-color: transparent; 
+        }
+        .calendar-day:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .calendar-day.selected-day { 
+            background-color: #bfdbfe; 
+            outline: 2px solid #3b82f6; 
+            outline-offset: -2px;
+        }
+        .holiday-marker {
+            font-size: 0.7rem;
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.25rem;
+            background-color: #fecaca; 
+            color: #b91c1c; 
+            font-weight: 500;
+        }
+        .modal-content::-webkit-scrollbar,
+        .task-table-container::-webkit-scrollbar,
+        .semanas-table-container::-webkit-scrollbar,
+        .updates-modal-content::-webkit-scrollbar { 
+            width: 8px;
+        }
+        .modal-content::-webkit-scrollbar-track,
+        .task-table-container::-webkit-scrollbar-track,
+        .semanas-table-container::-webkit-scrollbar-track,
+        .updates-modal-content::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        .modal-content::-webkit-scrollbar-thumb,
+        .task-table-container::-webkit-scrollbar-thumb,
+        .semanas-table-container::-webkit-scrollbar-thumb,
+        .updates-modal-content::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        .modal-content::-webkit-scrollbar-thumb:hover,
+        .task-table-container::-webkit-scrollbar-thumb:hover,
+        .semanas-table-container::-webkit-scrollbar-thumb:hover,
+        .updates-modal-content::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        button, input[type="text"], textarea {
+            /* padding: 0.75rem; */ /* Se ajusta individualmente */
+            margin: 0.5rem 0; 
+            border-radius: 0.5rem; 
+        }
+        #calendar-container {
+            overflow-x: hidden; 
+        }
+        .sstk-btn, .camera-filter-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem; 
+            font-weight: 500; 
+            transition: background-color 0.2s, color 0.2s, box-shadow 0.2s;
+            border: 1px solid transparent;
+        }
+        .sstk-btn-inactive, .camera-filter-btn-inactive {
+            background-color: #e5e7eb; 
+            color: #374151; 
+        }
+        .sstk-btn-inactive:hover, .camera-filter-btn-inactive:hover {
+            background-color: #d1d5db; 
+        }
+        .sstk-btn-active {
+            background-color: #3b82f6; 
+            color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+         .camera-filter-btn-active {
+            background-color: #2563eb; 
+            color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .sstk-btn-active:hover, .camera-filter-btn-active:hover {
+            opacity: 0.9;
+        }
+        .task-table-container, .semanas-table-container {
+            max-height: 400px; 
+            overflow-y: auto;
+            border: 1px solid #d1d5db; 
+            border-radius: 0.5rem; 
+            background-color: white; 
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1); 
+        }
+        .task-table th, .task-table td,
+        .semanas-table th, .semanas-table td { 
+            padding: 0.75rem; 
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb; 
+            font-size: 0.875rem; 
+            white-space: nowrap; 
+        }
+        .task-table th, .semanas-table th { 
+            background-color: #f9fafb; 
+            font-weight: 600; 
+            color: #374151; 
+            position: sticky; 
+            top: 0;
+            z-index: 10;
+        }
+        .task-table td, .semanas-table td {
+            color: #4b5563; 
+        }
+        .task-table tr:last-child td,
+        .semanas-table tr:last-child td {
+            border-bottom: none;
+        }
+        .task-table tr:nth-child(even),
+        .semanas-table tr:nth-child(even) {
+            background-color: #f9fafb; 
+        }
+        .digital-clock-controls-wrapper { 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 0.75rem; 
+            margin-top: 0.5rem; 
+        }
+        .digital-clock {
+            background-color: #000000;
+            color: #39ff14; 
+            font-family: 'Orbitron', sans-serif; 
+            font-size: 1.1rem; 
+            padding: 0.15rem 0.5rem; 
+            border-radius: 0.25rem; 
+            margin-right: 0.5rem; 
+            box-shadow: 0 0 3px #39ff14, 0 0 6px #39ff14 inset;
+            letter-spacing: 1px;
+        }
+        .refresh-btn {
+            background-color: #e5e7eb; 
+            color: #374151; 
+            padding: 0.4rem; 
+            border-radius: 0.25rem; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .refresh-btn:hover {
+            background-color: #d1d5db; 
+        }
+        .refresh-btn svg {
+            width: 1rem; 
+            height: 1rem; 
+        }
+        #cameraFilterButtonsContainer {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.5rem; 
+            margin-bottom: 1rem; 
+        }
+        .updates-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.6); 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1001; /* Encima de la navbar */
+            padding: 1rem;
+        }
+        .updates-modal-container {
+            background-color: white;
+            padding: 1.5rem; 
+            border-radius: 0.75rem; 
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 500px; 
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .updates-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e5e7eb; 
+            padding-bottom: 1rem; 
+            margin-bottom: 1rem; 
+        }
+        .updates-modal-header h3 {
+            font-size: 1.25rem; 
+            font-weight: 600; 
+            color: #1f2937; 
+        }
+        .updates-modal-close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #6b7280; 
+            cursor: pointer;
+            padding: 0.25rem;
+            line-height: 1;
+        }
+        .updates-modal-close-btn:hover {
+            color: #1f2937; 
+        }
+        .updates-modal-content {
+            flex-grow: 1;
+            overflow-y: auto;
+            margin-bottom: 1.5rem; 
+        }
+        .updates-modal-content ul {
+            list-style-type: disc;
+            padding-left: 1.5rem; 
+            color: #4b5563; 
+        }
+        .updates-modal-content li {
+            margin-bottom: 0.5rem; 
+        }
+        .updates-modal-footer {
+            text-align: right;
+        }
+        .updates-modal-footer button {
+            background-color: #3b82f6; 
+            color: white;
+            padding: 0.6rem 1.2rem;
+            border-radius: 0.375rem; 
+            font-weight: 500;
+        }
+        .updates-modal-footer button:hover {
+            background-color: #2563eb; 
+        }
+    </style>
+</head>
+<body class="antialiased text-gray-800">
+
+    <nav class="navbar bg-black text-white p-4 shadow-md">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="text-xl font-bold">Planificador</div>
+            <div class="hidden md:flex space-x-4">
+                <a href="#calendario-section" class="hover:text-gray-300">Calendario</a>
+                <a href="#repo-section" class="hover:text-gray-300">Repo</a>
+                <a href="#cierre-mes-section" class="hover:text-gray-300">Cierre de mes</a>
+            </div>
+            <div class="md:hidden">
+                <button id="mobileMenuBtn" class="text-white focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                </button>
+            </div>
+        </div>
+        <div id="mobileMenu" class="md:hidden hidden bg-black">
+            <a href="#calendario-section" class="block text-white hover:bg-gray-700 px-4 py-2 mobile-menu-link">Calendario</a>
+            <a href="#repo-section" class="block text-white hover:bg-gray-700 px-4 py-2 mobile-menu-link">Repo</a>
+            <a href="#cierre-mes-section" class="block text-white hover:bg-gray-700 px-4 py-2 mobile-menu-link">Cierre de mes</a>
+        </div>
+    </nav>
+
+    <div class="container mx-auto p-4">
+        <section id="calendario-section" class="pt-8">
+            <header class="flex justify-between items-center mb-4">
+                <button id="prevMonth" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">&lt; Mes Anterior</button>
+                <h1 id="monthYear" class="text-2xl md:text-3xl font-bold text-gray-700 text-center"></h1>
+                <button id="nextMonth" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">Mes Siguiente &gt;</button>
+            </header>
+
+            <div id="sstkSelector" class="flex justify-center space-x-2 mb-4">
+                <button id="sstk1Btn" class="sstk-btn sstk-btn-inactive">SSTK1</button>
+                <button id="sstk2Btn" class="sstk-btn sstk-btn-active">SSTK2</button> 
+                <button id="sstk3Btn" class="sstk-btn sstk-btn-inactive">SSTK3</button>
+            </div>
+
+            <div id="calendar-container">
+                <div id="calendar" class="grid grid-cols-7 gap-1 md:gap-2 bg-white p-2 md:p-4 rounded-lg shadow-lg">
+                </div>
+            </div>
+
+            <div class="flex justify-center items-center space-x-2 sm:space-x-4 mt-4 mb-4 p-3 rounded-lg bg-gray-100 shadow">
+                <div class="flex items-center">
+                    <span class="h-3 w-3 sm:h-4 sm:w-4 rounded-full bg-orange-400 mr-1 sm:mr-2 inline-block"></span>
+                    <span class="text-xs sm:text-sm font-medium text-gray-700">Tarde</span>
+                </div>
+                <div class="flex items-center">
+                    <span class="h-3 w-3 sm:h-4 sm:w-4 rounded-full bg-sky-400 mr-1 sm:mr-2 inline-block"></span>
+                    <span class="text-xs sm:text-sm font-medium text-gray-700">Mañana</span>
+                </div>
+                <div class="flex items-center">
+                    <span class="h-3 w-3 sm:h-4 sm:w-4 rounded-full bg-indigo-700 mr-1 sm:mr-2 inline-block"></span>
+                    <span class="text-xs sm:text-sm font-medium text-gray-700">Noche</span>
+                </div>
+            </div>
+        </section>
+
+        <section id="repo-section" class="mt-8 pt-8">
+            <h2 class="text-xl font-semibold text-gray-700 mb-3 text-center" id="taskTableHeader">Repo del Día</h2>
+            <div id="cameraFilterButtonsContainer">
+            </div>
+            <div id="taskTableContainer" class="task-table-container">
+                <div class="digital-clock-controls-wrapper">
+                    <div id="digitalClock" class="digital-clock">00:00:00</div>
+                    <button id="refreshPageBtn" class="refresh-btn" title="Recargar Página">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                        </svg>
+                    </button>
+                </div>
+                <table class="min-w-full task-table">
+                    <thead>
+                        <tr>
+                            <th>Cámara</th>
+                            <th>Apilador</th>
+                            <th>Hora</th>
+                            <th>Pasillo</th>
+                        </tr>
+                    </thead>
+                    <tbody id="taskTableBody">
+                    </tbody>
+                </table>
+            </div>
+            <p id="noTasksMessage" class="text-center text-gray-500 mt-4 hidden">No hay tareas para mostrar.</p>
+        </section>
+
+        <section id="cierre-mes-section" class="mt-12 pt-8"> 
+            <h2 class="text-xl font-semibold text-gray-700 mb-3 text-center">Cierre de mes</h2>
+            <div class="semanas-table-container">
+                <table class="min-w-full semanas-table">
+                    <thead>
+                        <tr>
+                            <th>N°SEMANA</th>
+                            <th>MES</th>
+                            <th>INICIO</th>
+                            <th>TERMINO</th>
+                            <th>CANT SEM</th>
+                        </tr>
+                    </thead>
+                    <tbody id="semanasTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <div id="dayModal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md transform transition-all">
+            <div class="flex justify-between items-center p-4 border-b border-gray-200">
+                <h2 id="modalDate" class="text-xl font-semibold"></h2>
+                <button id="closeModal" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+            </div>
+            <div class="p-4 modal-content max-h-[70vh] overflow-y-auto">
+                <div>
+                    <h3 class="text-lg font-medium mb-2">Notas</h3>
+                    <textarea id="notesInput" rows="4" placeholder="Escribe tus notas aquí..." class="w-full border border-gray-300 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
+                    <button id="saveNotesBtn" class="mt-2 w-full bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Guardar Notas</button>
+                    <div id="saveStatusMessage" class="mt-2 text-sm text-green-600 h-4 text-center"></div>
+                    <button id="exportToCalendarBtn" class="mt-3 w-full bg-teal-500 text-white px-4 py-2 rounded-md hover:bg-teal-600">Exportar a Calendario</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="updatesModal" class="updates-modal-overlay hidden">
+        <div class="updates-modal-container">
+            <div class="updates-modal-header">
+                <h3>¡Nuevas Actualizaciones!</h3>
+                <button id="closeUpdatesModalBtn" class="updates-modal-close-btn">&times;</button>
+            </div>
+            <div class="updates-modal-content">
+                <p class="mb-3 text-gray-700">Hemos realizado las siguientes mejoras en la aplicación:</p>
+                <ul>
+                    <li>Cambios en el diseño general del calendario y tablas.</li>
+                    <li>La sección "Repo" ahora se puede filtrar por cámara.</li>
+                    <li>Se agregó una nueva tabla de "Cierre de mes".</li>
+                    <li>Barra de navegación superior con enlaces a secciones.</li>
+                    <li>¡Y más optimizaciones internas!</li>
+                </ul>
+            </div>
+            <div class="updates-modal-footer">
+                <button id="understandUpdatesBtn">Entendido</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // --- INICIO DE DATOS JSON PARA TAREAS (TURNO TARDE) ---
+        const taskDataTarde = [
+          {
+            "Día": "LUNES",
+            "Turno": "Tarde",
+            "Camara": "Carnes",
+            "Apilador": "Flavio Huerta",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "N"
+          },
+          {
+            "Día": "LUNES",
+            "Turno": "Tarde",
+            "Camara": "Carnes",
+            "Apilador": "Victor Gonzalez",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "H"
+          },
+          {
+            "Día": "LUNES",
+            "Turno": "Tarde",
+            "Camara": "Congelado",
+            "Apilador": "Jose Jimenez / Renzo Dilas",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "T"
+          },
+          {
+            "Día": "LUNES",
+            "Turno": "Tarde",
+            "Camara": "Congelado",
+            "Apilador": "Luis Tambo / Rene Catalan",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "P"
+          },
+          {
+            "Día": "LUNES",
+            "Turno": "Tarde",
+            "Camara": "Congelado",
+            "Apilador": "Sebastian Carrasco / Gerardo Tejo",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "R"
+          },
+          {
+            "Día": "LUNES",
+            "Turno": "Tarde",
+            "Camara": "Congelado",
+            "Apilador": "Ricardo Seguel / Aybal Lopez",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "U"
+          },
+          {
+            "Día": "LUNES",
+            "Turno": "Tarde",
+            "Camara": "Fiambreria",
+            "Apilador": "Hugo Millanao / Julio Dilas",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "AA-AG"
+          },
+          {
+            "Día": "LUNES",
+            "Turno": "Tarde",
+            "Camara": "Fiambreria",
+            "Apilador": "Cesar Vera / Karol Ortiz",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "AH-AJ"
+          },
+          {
+            "Día": "LUNES",
+            "Turno": "Tarde",
+            "Camara": "Fiambreria",
+            "Apilador": "Roberto Muñoz / Jose Albarran",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "BA-BG"
+          },
+          {
+            "Día": "LUNES",
+            "Turno": "Tarde",
+            "Camara": "Fiambreria",
+            "Apilador": "Hans Leal / Jhonny Diaz",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "BH-BJ"
+          },
+          {
+            "Día": "LUNES",
+            "Turno": "Tarde",
+            "Camara": "Panaderia",
+            "Apilador": "Israel Molina",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "V1-V2 Y1-Y2"
+          },
+          {
+            "Día": "LUNES",
+            "Turno": "Tarde",
+            "Camara": "Panaderia",
+            "Apilador": "Yhorkey Gonzalez",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "V3-V4 Y3-Y4"
+          },
+          {
+            "Día": "LUNES",
+            "Turno": "Tarde",
+            "Camara": "Seco",
+            "Apilador": "Renzo Dilas / Jose Jimenez",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "SECO"
+          },
+          {
+            "Día": "LUNES",
+            "Turno": "Tarde",
+            "Camara": "Tropicales",
+            "Apilador": "Aybal Lopez / Ricardo Seguel",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "TROPICALES-XDOCK"
+          },
+          {
+            "Día": "LUNES",
+            "Turno": "Tarde",
+            "Camara": "Vegetales",
+            "Apilador": "Jhon Ramirez",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "V5-V9"
+          },
+          {
+            "Día": "LUNES",
+            "Turno": "Tarde",
+            "Camara": "Vegetales",
+            "Apilador": "Jose Toledo",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "Y5-Y9"
+          },
+          {
+            "Día": "LUNES",
+            "Turno": "Tarde",
+            "Camara": "Vegetales",
+            "Apilador": "Jhon Lopez",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "W1-W4 Z1-Z5"
+          },
+          {
+            "Día": "MARTES",
+            "Turno": "Tarde",
+            "Camara": "Carnes",
+            "Apilador": "Cesar Vera",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "H"
+          },
+          {
+            "Día": "MARTES",
+            "Turno": "Tarde",
+            "Camara": "Carnes",
+            "Apilador": "Hans Leal",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "N"
+          },
+          {
+            "Día": "MARTES",
+            "Turno": "Tarde",
+            "Camara": "Congelado",
+            "Apilador": "Gerardo Tejo / Sebastian Carrasco",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "U"
+          },
+          {
+            "Día": "MARTES",
+            "Turno": "Tarde",
+            "Camara": "Congelado",
+            "Apilador": "Rene Catalan / Luis Tambo",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "R"
+          },
+          {
+            "Día": "MARTES",
+            "Turno": "Tarde",
+            "Camara": "Congelado",
+            "Apilador": "Renzo Dilas / Jose Jimenez",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "P"
+          },
+          {
+            "Día": "MARTES",
+            "Turno": "Tarde",
+            "Camara": "Congelado",
+            "Apilador": "Aybal Lopez / Ricardo Seguel",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "T"
+          },
+          {
+            "Día": "MARTES",
+            "Turno": "Tarde",
+            "Camara": "Fiambreria",
+            "Apilador": "Israel Molina / Jhon Ramirez",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "AA-AG"
+          },
+          {
+            "Día": "MARTES",
+            "Turno": "Tarde",
+            "Camara": "Fiambreria",
+            "Apilador": "Yhorkey Gonzalez / Jose Toledo",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "AH-AJ"
+          },
+          {
+            "Día": "MARTES",
+            "Turno": "Tarde",
+            "Camara": "Fiambreria",
+            "Apilador": "Victor Morillo / Jhon Lopez",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "BA-BG"
+          },
+          {
+            "Día": "MARTES",
+            "Turno": "Tarde",
+            "Camara": "Fiambreria",
+            "Apilador": "Jorge Ardila / Hugo Millanao",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "BH-BJ"
+          },
+          {
+            "Día": "MARTES",
+            "Turno": "Tarde",
+            "Camara": "Panaderia",
+            "Apilador": "Jhonny Diaz",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "V1-V2 Y1-Y2"
+          },
+          {
+            "Día": "MARTES",
+            "Turno": "Tarde",
+            "Camara": "Panaderia",
+            "Apilador": "Jorge Palacios",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "V3-V4 Y3-Y4"
+          },
+          {
+            "Día": "MARTES",
+            "Turno": "Tarde",
+            "Camara": "Seco",
+            "Apilador": "Ricardo Seguel / Aybal Lopez",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "SECO"
+          },
+          {
+            "Día": "MARTES",
+            "Turno": "Tarde",
+            "Camara": "Tropicales",
+            "Apilador": "Sebastian Carrasco / Gerardo Tejo",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "TROPICALES-XDOCK"
+          },
+          {
+            "Día": "MARTES",
+            "Turno": "Tarde",
+            "Camara": "Vegetales",
+            "Apilador": "Julio Dilas",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "V5-V9"
+          },
+          {
+            "Día": "MARTES",
+            "Turno": "Tarde",
+            "Camara": "Vegetales",
+            "Apilador": "Karol Ortiz",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "Y5-Y9"
+          },
+          {
+            "Día": "MARTES",
+            "Turno": "Tarde",
+            "Camara": "Vegetales",
+            "Apilador": "Jose Albarran",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "W1-W4 Z1-Z5"
+          },
+          {
+            "Día": "MIÉRCOLES",
+            "Turno": "Tarde",
+            "Camara": "Carnes",
+            "Apilador": "Ricardo Seguel",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "N"
+          },
+          {
+            "Día": "MIÉRCOLES",
+            "Turno": "Tarde",
+            "Camara": "Carnes",
+            "Apilador": "Gerardo Tejo",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "H"
+          },
+          {
+            "Día": "MIÉRCOLES",
+            "Turno": "Tarde",
+            "Camara": "Congelado",
+            "Apilador": "Hugo Millanao / Victor Morillo",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "T"
+          },
+          {
+            "Día": "MIÉRCOLES",
+            "Turno": "Tarde",
+            "Camara": "Congelado",
+            "Apilador": "Cesar Vera / Yhorkey Gonzalez",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "P"
+          },
+          {
+            "Día": "MIÉRCOLES",
+            "Turno": "Tarde",
+            "Camara": "Congelado",
+            "Apilador": "Roberto Muñoz / Israel Molina",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "R"
+          },
+          {
+            "Día": "MIÉRCOLES",
+            "Turno": "Tarde",
+            "Camara": "Congelado",
+            "Apilador": "Hans Leal / Jorge Ardila",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "U"
+          },
+          {
+            "Día": "MIÉRCOLES",
+            "Turno": "Tarde",
+            "Camara": "Fiambreria",
+            "Apilador": "Julio Dilas / Rene Catalan",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "AA-AG"
+          },
+          {
+            "Día": "MIÉRCOLES",
+            "Turno": "Tarde",
+            "Camara": "Fiambreria",
+            "Apilador": "Karol Ortiz / Renzo Dilas",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "AH-AJ"
+          },
+          {
+            "Día": "MIÉRCOLES",
+            "Turno": "Tarde",
+            "Camara": "Fiambreria",
+            "Apilador": "Jose Albarran / Aybal Lopez",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "BA-BG"
+          },
+          {
+            "Día": "MIÉRCOLES",
+            "Turno": "Tarde",
+            "Camara": "Fiambreria",
+            "Apilador": "Jhon Ramirez / Flavio Huerta",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "BH-BJ"
+          },
+          {
+            "Día": "MIÉRCOLES",
+            "Turno": "Tarde",
+            "Camara": "Panaderia",
+            "Apilador": "Jose Toledo",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "V1-V2 Y1-Y2"
+          },
+          {
+            "Día": "MIÉRCOLES",
+            "Turno": "Tarde",
+            "Camara": "Panaderia",
+            "Apilador": "Jhon Lopez",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "V3-V4 Y3-Y4"
+          },
+          {
+            "Día": "MIÉRCOLES",
+            "Turno": "Tarde",
+            "Camara": "Seco",
+            "Apilador": "Victor Morillo / Hugo Millanao",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "SECO"
+          },
+          {
+            "Día": "MIÉRCOLES",
+            "Turno": "Tarde",
+            "Camara": "Tropicales",
+            "Apilador": "Jorge Ardila / Hans Leal",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "TROPICALES-XDOCK"
+          },
+          {
+            "Día": "MIÉRCOLES",
+            "Turno": "Tarde",
+            "Camara": "Vegetales",
+            "Apilador": "Jose Jimenez",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "V5-V9"
+          },
+          {
+            "Día": "MIÉRCOLES",
+            "Turno": "Tarde",
+            "Camara": "Vegetales",
+            "Apilador": "Luis Tambo",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "Y5-Y9"
+          },
+          {
+            "Día": "MIÉRCOLES",
+            "Turno": "Tarde",
+            "Camara": "Vegetales",
+            "Apilador": "Sebastian Carrasco",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "W1-W4 Z1-Z5"
+          },
+          {
+            "Día": "JUEVES",
+            "Turno": "Tarde",
+            "Camara": "Carnes",
+            "Apilador": "Victor Morillo",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "N"
+          },
+          {
+            "Día": "JUEVES",
+            "Turno": "Tarde",
+            "Camara": "Carnes",
+            "Apilador": "Jorge Ardila",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "H"
+          },
+          {
+            "Día": "JUEVES",
+            "Turno": "Tarde",
+            "Camara": "Congelado",
+            "Apilador": "Julio Dilas / Jhonny Diaz",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "T"
+          },
+          {
+            "Día": "JUEVES",
+            "Turno": "Tarde",
+            "Camara": "Congelado",
+            "Apilador": "Karol Ortiz / Jhon Lopez",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "P"
+          },
+          {
+            "Día": "JUEVES",
+            "Turno": "Tarde",
+            "Camara": "Congelado",
+            "Apilador": "Jose Albarran / Jose Toledo",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "R"
+          },
+          {
+            "Día": "JUEVES",
+            "Turno": "Tarde",
+            "Camara": "Congelado",
+            "Apilador": "Jhon Ramirez / Jorge Palacios",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "U"
+          },
+          {
+            "Día": "JUEVES",
+            "Turno": "Tarde",
+            "Camara": "Fiambreria",
+            "Apilador": "Gerardo Tejo / Victor Gonzalez",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "AA-AG"
+          },
+          {
+            "Día": "JUEVES",
+            "Turno": "Tarde",
+            "Camara": "Fiambreria",
+            "Apilador": "Rene Catalan / Israel Molina",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "AH-AJ"
+          },
+          {
+            "Día": "JUEVES",
+            "Turno": "Tarde",
+            "Camara": "Fiambreria",
+            "Apilador": "Renzo Dilas / Yhorkey Gonzalez",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "BA-BG"
+          },
+          {
+            "Día": "JUEVES",
+            "Turno": "Tarde",
+            "Camara": "Fiambreria",
+            "Apilador": "Aybal Lopez / Sebastian Carrasco",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "BH-BJ"
+          },
+          {
+            "Día": "JUEVES",
+            "Turno": "Tarde",
+            "Camara": "Panaderia",
+            "Apilador": "Flavio Huerta",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "V1-V2 Y1-Y2"
+          },
+          {
+            "Día": "JUEVES",
+            "Turno": "Tarde",
+            "Camara": "Panaderia",
+            "Apilador": "Hugo Millanao",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "V3-V4 Y3-Y4"
+          },
+          {
+            "Día": "JUEVES",
+            "Turno": "Tarde",
+            "Camara": "Seco",
+            "Apilador": "Jhonny Diaz / Julio Dilas",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "SECO"
+          },
+          {
+            "Día": "JUEVES",
+            "Turno": "Tarde",
+            "Camara": "Tropicales",
+            "Apilador": "Jorge Palacios / Jhon Ramirez",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "TROPICALES-XDOCK"
+          },
+          {
+            "Día": "JUEVES",
+            "Turno": "Tarde",
+            "Camara": "Vegetales",
+            "Apilador": "Cesar Vera",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "V5-V9"
+          },
+          {
+            "Día": "JUEVES",
+            "Turno": "Tarde",
+            "Camara": "Vegetales",
+            "Apilador": "Roberto Muñoz",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "Y5-Y9"
+          },
+          {
+            "Día": "JUEVES",
+            "Turno": "Tarde",
+            "Camara": "Vegetales",
+            "Apilador": "Hans Leal",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "W1-W4 Z1-Z5"
+          },
+          {
+            "Día": "VIERNES",
+            "Turno": "Tarde",
+            "Camara": "Carnes",
+            "Apilador": "Jose Albarran",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "N"
+          },
+          {
+            "Día": "VIERNES",
+            "Turno": "Tarde",
+            "Camara": "Carnes",
+            "Apilador": "Jhon Ramirez",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "H"
+          },
+          {
+            "Día": "VIERNES",
+            "Turno": "Tarde",
+            "Camara": "Congelado",
+            "Apilador": "Israel Molina / Roberto Muñoz",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "T"
+          },
+          {
+            "Día": "VIERNES",
+            "Turno": "Tarde",
+            "Camara": "Congelado",
+            "Apilador": "Yhorkey Gonzalez / Cesar Vera",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "P"
+          },
+          {
+            "Día": "VIERNES",
+            "Turno": "Tarde",
+            "Camara": "Congelado",
+            "Apilador": "Victor Morillo / Hugo Millanao",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "R"
+          },
+          {
+            "Día": "VIERNES",
+            "Turno": "Tarde",
+            "Camara": "Congelado",
+            "Apilador": "Jorge Ardila / Hans Leal",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "U"
+          },
+          {
+            "Día": "VIERNES",
+            "Turno": "Tarde",
+            "Camara": "Fiambreria",
+            "Apilador": "Jose Jimenez / Jhonny Diaz",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "AA-AG"
+          },
+          {
+            "Día": "VIERNES",
+            "Turno": "Tarde",
+            "Camara": "Fiambreria",
+            "Apilador": "Luis Tambo / Jorge Palacios",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "AH-AJ"
+          },
+          {
+            "Día": "VIERNES",
+            "Turno": "Tarde",
+            "Camara": "Fiambreria",
+            "Apilador": "Sebastian Carrasco / Flavio Huerta",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "BA-BG"
+          },
+          {
+            "Día": "VIERNES",
+            "Turno": "Tarde",
+            "Camara": "Fiambreria",
+            "Apilador": "Ricardo Seguel / Jose Toledo",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "BH-BJ"
+          },
+          {
+            "Día": "VIERNES",
+            "Turno": "Tarde",
+            "Camara": "Panaderia",
+            "Apilador": "Aybal Lopez",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "V1-V2 Y1-Y2"
+          },
+          {
+            "Día": "VIERNES",
+            "Turno": "Tarde",
+            "Camara": "Panaderia",
+            "Apilador": "Victor Gonzalez",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "V3-V4 Y3-Y4"
+          },
+          {
+            "Día": "VIERNES",
+            "Turno": "Tarde",
+            "Camara": "Seco",
+            "Apilador": "Roberto Muñoz / Israel Molina",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "SECO"
+          },
+          {
+            "Día": "VIERNES",
+            "Turno": "Tarde",
+            "Camara": "Tropicales",
+            "Apilador": "Hans Leal / Jorge Ardila",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "TROPICALES-XDOCK"
+          },
+          {
+            "Día": "VIERNES",
+            "Turno": "Tarde",
+            "Camara": "Vegetales",
+            "Apilador": "Gerardo Tejo",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "V5-V9"
+          },
+          {
+            "Día": "VIERNES",
+            "Turno": "Tarde",
+            "Camara": "Vegetales",
+            "Apilador": "Rene Catalan",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "Y5-Y9"
+          },
+          {
+            "Día": "VIERNES",
+            "Turno": "Tarde",
+            "Camara": "Vegetales",
+            "Apilador": "Renzo Dilas",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "W1-W4 Z1-Z5"
+          },
+          {
+            "Día": "SÁBADO",
+            "Turno": "Tarde",
+            "Camara": "Carnes",
+            "Apilador": "Rene Catalan",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "N"
+          },
+          {
+            "Día": "SÁBADO",
+            "Turno": "Tarde",
+            "Camara": "Carnes",
+            "Apilador": "Renzo Dilas",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "H"
+          },
+          {
+            "Día": "SÁBADO",
+            "Turno": "Tarde",
+            "Camara": "Congelado",
+            "Apilador": "Jhonny Diaz / Jose Albarran",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "T"
+          },
+          {
+            "Día": "SÁBADO",
+            "Turno": "Tarde",
+            "Camara": "Congelado",
+            "Apilador": "Jorge Palacios / Julio Dilas",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "P"
+          },
+          {
+            "Día": "SÁBADO",
+            "Turno": "Tarde",
+            "Camara": "Congelado",
+            "Apilador": "Flavio Huerta / Karol Ortiz",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "R"
+          },
+          {
+            "Día": "SÁBADO",
+            "Turno": "Tarde",
+            "Camara": "Congelado",
+            "Apilador": "Victor Gonzalez / Jhon Ramirez",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "U"
+          },
+          {
+            "Día": "SÁBADO",
+            "Turno": "Tarde",
+            "Camara": "Fiambreria",
+            "Apilador": "Jose Toledo / Jose Jimenez",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "AA-AG"
+          },
+          {
+            "Día": "SÁBADO",
+            "Turno": "Tarde",
+            "Camara": "Fiambreria",
+            "Apilador": "Jhon Lopez / Luis Tambo",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "AH-AJ"
+          },
+          {
+            "Día": "SÁBADO",
+            "Turno": "Tarde",
+            "Camara": "Fiambreria",
+            "Apilador": "Israel Molina / Sebastian Carrasco",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "BA-BG"
+          },
+          {
+            "Día": "SÁBADO",
+            "Turno": "Tarde",
+            "Camara": "Fiambreria",
+            "Apilador": "Yhorkey Gonzalez / Cesar Vera",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "BH-BJ"
+          },
+          {
+            "Día": "SÁBADO",
+            "Turno": "Tarde",
+            "Camara": "Panaderia",
+            "Apilador": "Roberto Muñoz",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "V1-V2 Y1-Y2"
+          },
+          {
+            "Día": "SÁBADO",
+            "Turno": "Tarde",
+            "Camara": "Panaderia",
+            "Apilador": "Hans Leal",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "V3-V4 Y3-Y4"
+          },
+          {
+            "Día": "SÁBADO",
+            "Turno": "Tarde",
+            "Camara": "Seco",
+            "Apilador": "Jose Albarran / Jhonny Diaz",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "SECO"
+          },
+          {
+            "Día": "SÁBADO",
+            "Turno": "Tarde",
+            "Camara": "Tropicales",
+            "Apilador": "Jhon Ramirez / Victor Gonzalez",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "TROPICALES-XDOCK"
+          },
+          {
+            "Día": "SÁBADO",
+            "Turno": "Tarde",
+            "Camara": "Vegetales",
+            "Apilador": "Victor Morillo",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "V5-V9"
+          },
+          {
+            "Día": "SÁBADO",
+            "Turno": "Tarde",
+            "Camara": "Vegetales",
+            "Apilador": "Jorge Ardila",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "Y5-Y9"
+          },
+          {
+            "Día": "SÁBADO",
+            "Turno": "Tarde",
+            "Camara": "Vegetales",
+            "Apilador": "Hugo Millanao",
+            "Hora Inicio": "14:15",
+            "Hora break inicio": "18:40",
+            "Hora break fin": "19:10",
+            "Hora fin": "21:55",
+            "Pasillo": "W1-W4 Z1-Z5"
+          }
+        ];
+        // --- FIN DE DATOS JSON ---
+
+        // --- INICIO DE DATOS JSON PARA TABLA DE SEMANAS ---
+        const datosSemanas = [
+            { "N°SEMANA": "1", "MES": "ENERO_2025", "INICIO": "02/12/2024", "TERMINO": "05/01/2025", "CANT SEM": 5 },
+            { "N°SEMANA": "2-3-4-5", "MES": "FEBRERO", "INICIO": "06/01/2025", "TERMINO": "02/02/2025", "CANT SEM": 4 },
+            { "N°SEMANA": "6-7-8-9-10", "MES": "MARZO", "INICIO": "03/02/2025", "TERMINO": "09/03/2025", "CANT SEM": 5 },
+            { "N°SEMANA": "11-12-13-14", "MES": "ABRIL", "INICIO": "10/03/2025", "TERMINO": "06/04/2025", "CANT SEM": 4 },
+            { "N°SEMANA": "15-16-17-18", "MES": "MAYO", "INICIO": "07/04/2025", "TERMINO": "04/05/2025", "CANT SEM": 4 },
+            { "N°SEMANA": "19-20-21-22-23", "MES": "JUNIO", "INICIO": "05/05/2025", "TERMINO": "08/06/2025", "CANT SEM": 5 },
+            { "N°SEMANA": "24-25-26-27", "MES": "JULIO", "INICIO": "09/06/2025", "TERMINO": "06/07/2025", "CANT SEM": 4 },
+            { "N°SEMANA": "28-29-30-31", "MES": "AGOSTO", "INICIO": "07/07/2025", "TERMINO": "03/08/2025", "CANT SEM": 4 },
+            { "N°SEMANA": "32-33-34-35-36", "MES": "SEPTIEMBRE", "INICIO": "04/08/2025", "TERMINO": "07/09/2025", "CANT SEM": 5 },
+            { "N°SEMANA": "37-38-39-40", "MES": "OCTUBRE", "INICIO": "08/09/2025", "TERMINO": "05/10/2025", "CANT SEM": 4 },
+            { "N°SEMANA": "41-42-43-44-45", "MES": "NOVIEMBRE", "INICIO": "06/10/2025", "TERMINO": "09/11/2025", "CANT SEM": 5 },
+            { "N°SEMANA": "46-47-48-49", "MES": "DICIEMBRE", "INICIO": "10/11/2025", "TERMINO": "07/12/2025", "CANT SEM": 4 },
+            { "N°SEMANA": "50-51-52-01", "MES": "ENERO_2026", "INICIO": "08/12/2025", "TERMINO": "04/01/2026", "CANT SEM": 4 } 
+        ];
+        // --- FIN DE DATOS JSON PARA TABLA DE SEMANAS ---
+
+
+        // Elementos del DOM (Calendario, Modal - definidos previamente en el contexto)
+        const monthYearElement = document.getElementById('monthYear');
+        const calendarElement = document.getElementById('calendar');
+        const calendarContainer = document.getElementById('calendar-container');
+        const prevMonthButton = document.getElementById('prevMonth');
+        const nextMonthButton = document.getElementById('nextMonth');
+        
+        const dayModal = document.getElementById('dayModal');
+        const modalDateElement = document.getElementById('modalDate');
+        const closeModalButton = document.getElementById('closeModal');
+        const notesInput = document.getElementById('notesInput');
+        const saveNotesBtn = document.getElementById('saveNotesBtn');
+        const exportToCalendarBtn = document.getElementById('exportToCalendarBtn');
+        const saveStatusMessage = document.getElementById('saveStatusMessage');
+        
+        const taskTableHeaderElement = document.getElementById('taskTableHeader');
+        const taskTableBody = document.getElementById('taskTableBody');
+        const noTasksMessageElement = document.getElementById('noTasksMessage');
+        const cameraFilterButtonsContainer = document.getElementById('cameraFilterButtonsContainer');
+        const digitalClockElement = document.getElementById('digitalClock');
+        const refreshPageBtn = document.getElementById('refreshPageBtn');
+        const semanasTableBody = document.getElementById('semanasTableBody');
+        const updatesModal = document.getElementById('updatesModal');
+        const closeUpdatesModalBtn = document.getElementById('closeUpdatesModalBtn');
+        const understandUpdatesBtn = document.getElementById('understandUpdatesBtn');
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const mobileMenu = document.getElementById('mobileMenu');
+        
+        // Variables de Estado
+        let selectedCalendarDate = null; 
+        let currentDate = new Date(); 
+        let currentSSTK = "SSTK2"; 
+        let taskUpdateInterval = null; 
+        let currentModalDate = null;
+        let currentCameraFilter = "Todas"; 
+
+
+        // SSTK Buttons
+        const sstk1Btn = document.getElementById('sstk1Btn');
+        const sstk2Btn = document.getElementById('sstk2Btn');
+        const sstk3Btn = document.getElementById('sstk3Btn');
+        const sstkButtons = [sstk1Btn, sstk2Btn, sstk3Btn];
+
+        // Localización y Constantes
+        const spanishMonths = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+        const SHIFTS = ["Tarde", "Mañana", "Noche"]; 
+        const SHIFT_COLORS = {
+            "Tarde": "bg-orange-400 text-black",
+            "Mañana": "bg-sky-400 text-black",
+            "Noche": "bg-indigo-700 text-white"
+        };
+        const REFERENCE_MONDAY_FOR_SHIFT_CYCLE = new Date(2025, 4, 5); 
+        REFERENCE_MONDAY_FOR_SHIFT_CYCLE.setHours(0, 0, 0, 0);
+
+        const CHILEAN_HOLIDAYS_2025 = [
+            { date: "2025-01-01", name: "Año Nuevo" },
+            { date: "2025-04-18", name: "Viernes Santo" },
+            { date: "2025-04-19", name: "Sábado Santo" },
+            { date: "2025-05-01", name: "Día Nacional del Trabajo" },
+            { date: "2025-05-21", name: "Día de las Glorias Navales" },
+            { date: "2025-06-20", name: "Día Nacional de los Pueblos Indígenas" },
+            { date: "2025-06-29", name: "San Pedro y San Pablo" }, 
+            { date: "2025-07-16", name: "Día de la Virgen del Carmen" },
+            { date: "2025-08-15", name: "Asunción de la Virgen" },
+            { date: "2025-09-18", name: "Independencia Nacional" },
+            { date: "2025-09-19", name: "Día de las Glorias del Ejército" },
+            { date: "2025-10-31", name: "Día Nacional de las Iglesias Evangélicas y Protestantes" },
+            { date: "2025-11-01", name: "Día de Todos los Santos" },
+            { date: "2025-12-08", name: "Inmaculada Concepción" },
+            { date: "2025-12-25", name: "Navidad" }
+        ];
+        
+        const HORARIOS_TARDE = {
+            inicio: "14:15",
+            breakInicio: "18:40",
+            breakFin: "19:10",
+            fin: "21:55"
+        };
+
+        // Funciones Utilitarias
+        function getMondayOfDate(d) {
+            const date = new Date(d);
+            const day = date.getDay(); 
+            const diff = date.getDate() - day + (day === 0 ? -6 : 1); 
+            const monday = new Date(date.setDate(diff));
+            monday.setHours(0,0,0,0);
+            return monday;
+        }
+
+        function getShiftForDate(date) {
+            const currentWeekMonday = getMondayOfDate(date);
+            const millisecondsPerWeek = 7 * 24 * 60 * 60 * 1000;
+            let weekDifference = Math.round(
+                (currentWeekMonday.getTime() - REFERENCE_MONDAY_FOR_SHIFT_CYCLE.getTime()) / millisecondsPerWeek
+            );
+            let baseShiftIndex = weekDifference % SHIFTS.length;
+            if (baseShiftIndex < 0) { 
+                baseShiftIndex += SHIFTS.length;
+            }
+            let finalShiftIndex;
+            if (currentSSTK === "SSTK1") { 
+                finalShiftIndex = (baseShiftIndex - 1 + SHIFTS.length) % SHIFTS.length;
+            } else if (currentSSTK === "SSTK3") { 
+                finalShiftIndex = (baseShiftIndex + 1) % SHIFTS.length;
+            } else { 
+                finalShiftIndex = baseShiftIndex;
+            }
+            return SHIFTS[finalShiftIndex];
+        }
+
+        function isHoliday(date) {
+            const dateString = date.toISOString().split('T')[0];
+            return CHILEAN_HOLIDAYS_2025.find(h => h.date === dateString);
+        }
+
+        function formatearNombreApilador(nombreCompleto) {
+            if (!nombreCompleto || typeof nombreCompleto !== 'string') return "";
+            return nombreCompleto.split(' ')
+                                 .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                                 .join(' ');
+        }
+
+        function mapCalendarioDiaAJSONKey(diaISO) { 
+            const dateObj = new Date(diaISO + 'T00:00:00'); 
+            const dayIndex = dateObj.getDay(); 
+            const diasJSON = ["DOMINGO", "LUNES", "MARTES", "MIÉRCOLES", "JUEVES", "VIERNES", "SÁBADO"];
+            return diasJSON[dayIndex];
+        }
+
+        function obtenerEstadoTurnoTarde() {
+            const now = new Date();
+            const currentTime = now.getHours() * 100 + now.getMinutes(); 
+            const inicioTurno = parseInt(HORARIOS_TARDE.inicio.replace(":", ""));
+            const inicioBreak = parseInt(HORARIOS_TARDE.breakInicio.replace(":", ""));
+            const finBreak = parseInt(HORARIOS_TARDE.breakFin.replace(":", ""));
+            const finTurno = parseInt(HORARIOS_TARDE.fin.replace(":", ""));
+
+            if (currentTime >= inicioTurno && currentTime < inicioBreak) {
+                return "antes_break";
+            } else if (currentTime >= inicioBreak && currentTime < finBreak) {
+                return "en_break";
+            } else if (currentTime >= finBreak && currentTime <= finTurno) { 
+                return "despues_break";
+            } else {
+                return "fuera_de_turno";
+            }
+        }
+        
+        function generarColorPastelAleatorio() {
+            const h = Math.floor(Math.random() * 360);
+            const s = Math.floor(Math.random() * 25) + 70; 
+            const l = Math.floor(Math.random() * 15) + 75; 
+            return `hsl(${h}, ${s}%, ${l}%)`;
+        }
+
+        // Renderizado de Botones de Filtro de Cámara
+        function renderizarBotonesFiltroCamara() {
+            cameraFilterButtonsContainer.innerHTML = ''; 
+            const todasLasCamaras = [...new Set(taskDataTarde.map(item => item.Camara))].sort();
+            const camarasParaBotones = ["Todas", ...todasLasCamaras];
+
+            camarasParaBotones.forEach(camara => {
+                const button = document.createElement('button');
+                button.textContent = camara;
+                button.classList.add('camera-filter-btn');
+                
+                if (camara === currentCameraFilter) {
+                    button.classList.add('camera-filter-btn-active');
+                    button.classList.remove('camera-filter-btn-inactive');
+                } else {
+                    button.classList.add('camera-filter-btn-inactive');
+                    button.classList.remove('camera-filter-btn-active');
+                }
+
+                if (camara !== "Todas") { 
+                    button.style.backgroundColor = generarColorPastelAleatorio();
+                    button.style.color = '#222'; 
+                } else if (camara === "Todas" && camara === currentCameraFilter) {
+                     // El estilo active ya tiene fondo azul y texto blanco
+                } else if (camara === "Todas" && camara !== currentCameraFilter) {
+                    // El estilo inactive ya tiene fondo gris
+                }
+
+                button.addEventListener('click', () => {
+                    currentCameraFilter = camara;
+                    document.querySelectorAll('.camera-filter-btn').forEach(btn => {
+                        btn.classList.remove('camera-filter-btn-active', 'camera-filter-btn-inactive');
+                        if (btn.textContent === currentCameraFilter) {
+                            btn.classList.add('camera-filter-btn-active');
+                             if (btn.textContent === "Todas") { 
+                                btn.style.backgroundColor = ''; 
+                                btn.style.color = '';
+                            }
+                        } else {
+                            btn.classList.add('camera-filter-btn-inactive');
+                             if (btn.textContent === "Todas") { 
+                                btn.style.backgroundColor = ''; 
+                                btn.style.color = '';
+                            }
+                        }
+                    });
+                    renderizarTablaTareas(); 
+                });
+                cameraFilterButtonsContainer.appendChild(button);
+            });
+        }
+
+        // Renderizado de Tabla de Tareas
+        function renderizarTablaTareas() {
+            if (!selectedCalendarDate) {
+                taskTableBody.innerHTML = ""; 
+                noTasksMessageElement.textContent = "Selecciona un día en el calendario para ver las tareas.";
+                noTasksMessageElement.classList.remove('hidden');
+                taskTableHeaderElement.textContent = `Repo del Día`;
+                return;
+            }
+
+            const diaJSON = mapCalendarioDiaAJSONKey(selectedCalendarDate);
+            const turnoActualCalendario = getShiftForDate(new Date(selectedCalendarDate + 'T00:00:00'));
+            taskTableBody.innerHTML = ""; 
+            noTasksMessageElement.classList.add('hidden'); 
+
+            if (currentSSTK !== "SSTK2" || turnoActualCalendario !== "Tarde") {
+                noTasksMessageElement.textContent = `Datos de repo solo disponibles para SSTK2 Turno Tarde. (${currentSSTK} - ${turnoActualCalendario} seleccionado).`;
+                noTasksMessageElement.classList.remove('hidden');
+                taskTableHeaderElement.textContent = `Repo del ${diaJSON.toLowerCase()} (${turnoActualCalendario})`;
+                return;
+            }
+            
+            const estadoTurno = obtenerEstadoTurnoTarde();
+            let tareasDelDia = taskDataTarde.filter(tarea => tarea.Día === diaJSON && tarea.Turno === "Tarde");
+
+            if (currentCameraFilter !== "Todas") {
+                tareasDelDia = tareasDelDia.filter(tarea => tarea.Camara === currentCameraFilter);
+            }
+            
+            let esDiaActual = (new Date().toISOString().split('T')[0] === selectedCalendarDate);
+            let horaMostrada = "";
+            let apiladorMostrado = "";
+            let tituloTabla = `Repo del ${diaJSON.toLowerCase()} (Tarde`;
+
+            if (esDiaActual) {
+                if (estadoTurno === "antes_break") {
+                    horaMostrada = `${HORARIOS_TARDE.inicio} - ${HORARIOS_TARDE.breakInicio}`;
+                    tituloTabla += ` - Antes del Break)`;
+                } else if (estadoTurno === "en_break") {
+                    horaMostrada = "Break";
+                    tituloTabla += ` - En Break)`;
+                } else if (estadoTurno === "despues_break") {
+                    horaMostrada = `${HORARIOS_TARDE.breakFin} - ${HORARIOS_TARDE.fin}`;
+                    tituloTabla += ` - Después del Break)`;
+                } else { 
+                    horaMostrada = "-";
+                    tituloTabla += ` - Fuera de Horario)`;
+                    noTasksMessageElement.textContent = "Turno tarde no activo. Mostrando asignaciones generales.";
+                    if (tareasDelDia.length > 0) noTasksMessageElement.classList.remove('hidden');
+                }
+            } else { 
+                horaMostrada = "-"; 
+                tituloTabla += ` - Asignaciones Generales)`;
+                noTasksMessageElement.textContent = `Viendo asignaciones generales para ${diaJSON.toLowerCase()}. La vista detallada por horario solo aplica al día actual.`;
+                 if (tareasDelDia.length > 0) noTasksMessageElement.classList.remove('hidden');
+            }
+            taskTableHeaderElement.textContent = tituloTabla;
+
+            if (tareasDelDia.length === 0) {
+                if (currentCameraFilter !== "Todas"){
+                    noTasksMessageElement.textContent = `No hay repo programado para la cámara "${currentCameraFilter}" el ${diaJSON.toLowerCase()} en el turno tarde.`;
+                } else {
+                    noTasksMessageElement.textContent = `No hay repo programado para el ${diaJSON.toLowerCase()} en el turno tarde.`;
+                }
+                noTasksMessageElement.classList.remove('hidden');
+                return; 
+            }
+            
+            tareasDelDia.forEach(item => {
+                const apiladoresArray = item.Apilador.split(' / ').map(nombre => nombre.trim());
+                
+                if (esDiaActual) {
+                    if (estadoTurno === "antes_break") {
+                        apiladorMostrado = formatearNombreApilador(apiladoresArray[0]);
+                    } else if (estadoTurno === "en_break") {
+                        apiladorMostrado = formatearNombreApilador(apiladoresArray[0]); 
+                    } else if (estadoTurno === "despues_break") {
+                        apiladorMostrado = formatearNombreApilador(apiladoresArray.length > 1 ? apiladoresArray[1] : apiladoresArray[0]);
+                    } else { 
+                        apiladorMostrado = item.Apilador; 
+                    }
+                } else { 
+                     apiladorMostrado = item.Apilador; 
+                }
+
+                if (apiladorMostrado) { 
+                    const row = taskTableBody.insertRow();
+                    row.insertCell().textContent = item.Camara;
+                    row.insertCell().textContent = apiladorMostrado;
+                    row.insertCell().textContent = horaMostrada;
+                    row.insertCell().textContent = item.Pasillo;
+                }
+            });
+
+            if (taskTableBody.rows.length > 0) {
+                 if(esDiaActual && (estadoTurno === "antes_break" || estadoTurno === "despues_break")){
+                     noTasksMessageElement.classList.add('hidden'); 
+                 } else if (!esDiaActual && tareasDelDia.length > 0) {
+                     noTasksMessageElement.classList.add('hidden'); 
+                 }
+            } else if (tareasDelDia.length > 0) { 
+                noTasksMessageElement.textContent = `No hay repo específico para este bloque horario y filtro de cámara.`;
+                noTasksMessageElement.classList.remove('hidden');
+            }
+        }
+
+        // Renderizado del Calendario
+        function renderCalendar() {
+            calendarElement.innerHTML = ''; 
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth(); 
+            monthYearElement.textContent = `${spanishMonths[month]} ${year}`;
+
+            const displayDays = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+            displayDays.forEach(day => {
+                const dayHeader = document.createElement('div');
+                dayHeader.className = 'text-center font-semibold text-gray-600 py-2 text-xs sm:text-sm';
+                dayHeader.textContent = day;
+                calendarElement.appendChild(dayHeader);
+            });
+
+            const firstDayOfMonth = new Date(year, month, 1);
+            const lastDayOfMonth = new Date(year, month + 1, 0);
+            const daysInMonth = lastDayOfMonth.getDate();
+            let startingDay = firstDayOfMonth.getDay(); 
+            if (startingDay === 0) startingDay = 7; 
+
+            for (let i = 1; i < startingDay; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = 'border border-gray-200 bg-gray-50 rounded-md';
+                calendarElement.appendChild(emptyCell);
+            }
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayCell = document.createElement('div');
+                const cellDate = new Date(year, month, day);
+                const shift = getShiftForDate(cellDate); 
+                const holiday = isHoliday(cellDate);
+                const dateString = cellDate.toISOString().split('T')[0];
+                
+                dayCell.className = `calendar-day p-1 sm:p-2 md:p-3 border border-gray-300 rounded-md text-center cursor-pointer ${SHIFT_COLORS[shift]}`;
+                if (dateString === selectedCalendarDate) { 
+                    dayCell.classList.add('selected-day');
+                }
+                
+                const dayNumber = document.createElement('span');
+                dayNumber.className = 'text-base sm:text-lg font-medium';
+                dayNumber.textContent = day;
+                dayCell.appendChild(dayNumber);
+
+                if (holiday) {
+                    const holidayInfo = document.createElement('div');
+                    holidayInfo.className = 'holiday-marker mt-1 truncate text-xs';
+                    holidayInfo.textContent = `(F) ${holiday.name.substring(0,10)}...`;
+                    holidayInfo.title = holiday.name;
+                    dayCell.appendChild(holidayInfo);
+                }
+                
+                dayCell.dataset.date = dateString; 
+                dayCell.addEventListener('click', () => {
+                    const previouslySelected = calendarElement.querySelector('.selected-day');
+                    if (previouslySelected) {
+                        previouslySelected.classList.remove('selected-day');
+                    }
+                    dayCell.classList.add('selected-day');
+                    selectedCalendarDate = dateString; 
+                    openModalForDate(cellDate); 
+                    renderizarTablaTareas(); 
+                });
+                calendarElement.appendChild(dayCell);
+            }
+            
+            const currentSelectedCellInDOM = calendarElement.querySelector(`.calendar-day[data-date="${selectedCalendarDate}"]`);
+            if (selectedCalendarDate && currentSelectedCellInDOM) {
+                 currentSelectedCellInDOM.classList.add('selected-day');
+            } else if (!selectedCalendarDate && year === new Date().getFullYear() && month === new Date().getMonth()) {
+                const todayDateStr = new Date().toISOString().split('T')[0];
+                const todayCell = calendarElement.querySelector(`.calendar-day[data-date="${todayDateStr}"]`);
+                if (todayCell) {
+                    todayCell.classList.add('selected-day');
+                    selectedCalendarDate = todayDateStr;
+                }
+            }
+            renderizarTablaTareas(); 
+        }
+
+        // Lógica del Modal (Notas)
+        function openModalForDate(date) { 
+            currentModalDate = date.toISOString().split('T')[0]; 
+            modalDateElement.textContent = `${date.toLocaleDateString('es-CL', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`;
+            loadNotesForDate(currentModalDate);
+            dayModal.classList.remove('hidden');
+            saveStatusMessage.textContent = ''; 
+        }
+
+        closeModalButton.addEventListener('click', () => {
+            dayModal.classList.add('hidden');
+        });
+        
+        dayModal.addEventListener('click', (event) => {
+            if (event.target === dayModal) {
+                dayModal.classList.add('hidden');
+            }
+        });
+
+        function getStoredData() {
+            const data = localStorage.getItem('calendarAppData');
+            return data ? JSON.parse(data) : {};
+        }
+
+        function setStoredData(data) {
+            localStorage.setItem('calendarAppData', JSON.stringify(data));
+        }
+
+        function loadNotesForDate(dateString) {
+            const data = getStoredData();
+            const dayData = data[dateString] || { notes: '' };
+            notesInput.value = dayData.notes || '';
+        }
+
+        saveNotesBtn.addEventListener('click', () => {
+            if (!currentModalDate) return;
+            const notesText = notesInput.value; 
+            const data = getStoredData();
+            if (!data[currentModalDate]) {
+                data[currentModalDate] = { notes: '' }; 
+            }
+            data[currentModalDate].notes = notesText;
+            setStoredData(data);
+            saveStatusMessage.textContent = '¡Notas guardadas!';
+            setTimeout(() => {
+                saveStatusMessage.textContent = '';
+            }, 3000); 
+        });
+
+        exportToCalendarBtn.addEventListener('click', () => {
+            if (!currentModalDate || !notesInput.value.trim()) {
+                alert("No hay notas para exportar o la fecha no está seleccionada.");
+                return;
+            }
+            const notes = notesInput.value;
+            const dateParts = currentModalDate.split('-'); 
+            const year = dateParts[0];
+            const month = dateParts[1];
+            const day = dateParts[2];
+            const uid = `${year}${month}${day}T${new Date().getHours()}${new Date().getMinutes()}${new Date().getSeconds()}@miAppCalendario.com`;
+            const dtstamp = new Date().toISOString().replace(/[-:.]/g, "").substring(0, 15) + "Z";
+            const summary = `Notas: ${notes.split('\\n')[0].substring(0, 50)}`; 
+            let endDate = new Date(parseInt(year), parseInt(month)-1, parseInt(day));
+            endDate.setDate(endDate.getDate() + 1);
+            const endYear = endDate.getFullYear();
+            const endMonth = (endDate.getMonth() + 1).toString().padStart(2, '0');
+            const endDay = endDate.getDate().toString().padStart(2, '0');
+            const icsContent = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//MiAppCalendario//Turnos//ES
+BEGIN:VEVENT
+UID:${uid}
+DTSTAMP:${dtstamp}
+DTSTART;VALUE=DATE:${year}${month}${day}
+DTEND;VALUE=DATE:${endYear}${endMonth}${endDay}
+SUMMARY:${summary}
+DESCRIPTION:${notes.replace(/\n/g, '\\n')}
+END:VEVENT
+END:VCALENDAR`;
+            const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `notas_${currentModalDate}.ics`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(link.href); 
+        });
+
+        // Listeners de Navegación
+        prevMonthButton.addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            renderCalendar(); 
+        });
+
+        nextMonthButton.addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            renderCalendar(); 
+        });
+        
+        sstkButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                currentSSTK = button.textContent; 
+                sstkButtons.forEach(btn => {
+                    btn.classList.remove('sstk-btn-active');
+                    btn.classList.add('sstk-btn-inactive');
+                });
+                button.classList.remove('sstk-btn-inactive');
+                button.classList.add('sstk-btn-active');
+                renderCalendar(); 
+            });
+        });
+        
+        let touchStartX = 0;
+        let touchEndX = 0;
+        const swipeThreshold = 50; 
+        calendarContainer.addEventListener('touchstart', (event) => {
+            touchStartX = event.changedTouches[0].screenX;
+        }, { passive: true }); 
+        calendarContainer.addEventListener('touchend', (event) => {
+            touchEndX = event.changedTouches[0].screenX;
+            handleSwipe();
+        }, { passive: true });
+        function handleSwipe() {
+            if (touchEndX < touchStartX - swipeThreshold) { 
+                nextMonthButton.click();
+            } else if (touchEndX > touchStartX + swipeThreshold) { 
+                prevMonthButton.click();
+            }
+            touchStartX = 0;
+            touchEndX = 0;
+        }
+
+        // Reloj Digital y Botón de Recarga
+        function actualizarRelojDigital() {
+            const now = new Date();
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const seconds = now.getSeconds().toString().padStart(2, '0');
+            if (digitalClockElement) { 
+                digitalClockElement.textContent = `${hours}:${minutes}:${seconds}`;
+            }
+        }
+        if (refreshPageBtn) { 
+            refreshPageBtn.addEventListener('click', () => {
+                location.reload();
+            });
+        }
+
+        // Nueva función para renderizar la tabla de semanas
+        function renderizarTablaSemanas() {
+            if (!semanasTableBody) return; 
+            semanasTableBody.innerHTML = ''; 
+
+            datosSemanas.forEach(semana => {
+                const row = semanasTableBody.insertRow();
+                row.insertCell().textContent = semana["N°SEMANA"];
+                row.insertCell().textContent = semana.MES;
+                row.insertCell().textContent = semana.INICIO;
+                row.insertCell().textContent = semana.TERMINO;
+                row.insertCell().textContent = semana["CANT SEM"];
+            });
+        }
+
+        // Lógica del Modal de Actualizaciones
+        if (updatesModal && closeUpdatesModalBtn && understandUpdatesBtn) {
+            const updatesModalShownKey = 'planificadorTurnosUpdatesModalShown_v1'; // Cambiar versión si hay nuevas actualizaciones importantes
+
+            function mostrarUpdatesModal() {
+                updatesModal.classList.remove('hidden');
+            }
+            function ocultarUpdatesModal() {
+                updatesModal.classList.add('hidden');
+                localStorage.setItem(updatesModalShownKey, 'true');
+            }
+            closeUpdatesModalBtn.addEventListener('click', ocultarUpdatesModal);
+            understandUpdatesBtn.addEventListener('click', ocultarUpdatesModal);
+            
+            if (!localStorage.getItem(updatesModalShownKey)) {
+                mostrarUpdatesModal(); 
+            }
+        }
+
+        // Lógica de la Barra de Navegación Móvil
+        if (mobileMenuBtn && mobileMenu) {
+            mobileMenuBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+
+            document.querySelectorAll('.mobile-menu-link').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const targetId = link.getAttribute('href').substring(1);
+                    const targetElement = document.getElementById(targetId);
+                    if (targetElement) {
+                        targetElement.scrollIntoView({ behavior: 'smooth' });
+                    }
+                    mobileMenu.classList.add('hidden'); // Ocultar menú después de hacer clic
+                });
+            });
+             document.querySelectorAll('nav a:not(.mobile-menu-link)').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    const href = link.getAttribute('href');
+                    if (href && href.startsWith('#')) {
+                        e.preventDefault();
+                        const targetId = href.substring(1);
+                        const targetElement = document.getElementById(targetId);
+                        if (targetElement) {
+                            targetElement.scrollIntoView({ behavior: 'smooth' });
+                        }
+                    }
+                });
+            });
+        }
+        
+        // Configuración Inicial
+        CHILEAN_HOLIDAYS_2025.sort((a, b) => new Date(a.date) - new Date(b.date));
+        const today = new Date();
+        selectedCalendarDate = today.toISOString().split('T')[0]; 
+
+        renderCalendar(); 
+        renderizarBotonesFiltroCamara(); 
+        renderizarTablaSemanas(); 
+
+        if (taskUpdateInterval) clearInterval(taskUpdateInterval); 
+        taskUpdateInterval = setInterval(() => {
+            actualizarRelojDigital();
+            renderizarTablaTareas(); 
+        }, 1000); 
+
+        actualizarRelojDigital(); 
+
+    </script>
+</body>
+</html>
